@@ -25,9 +25,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('doc/', schema_view),
     path('gateway/', include('gateway.urls')),
+    path('',include('home.urls'))
 ]
 
 for module in settings.MODULES:
-    urlpatterns += [
-        path('{}/'.format(module), include('{}.urls'.format(module)))
-    ]
+    if module!="home":
+        urlpatterns += [
+            path('{}/'.format(module), include('{}.urls'.format(module)))
+        ]
