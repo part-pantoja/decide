@@ -164,3 +164,7 @@ class CensusTest(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[3]/div/div[1]/div/form/div/p').text == 'Please correct the errors below.')
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/census/census/add")
+
+class SimpleTest(TestCase):
+    def test_basic_addition(self):
+        self.assertEqual(1 + 1, 2)
