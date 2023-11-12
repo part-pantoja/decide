@@ -14,6 +14,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from .serializers import UserSerializer
 
 
+
+def login(request):
+    return render(request, "login.html")
+
 class GetUserView(APIView):
     def post(self, request):
         key = request.data.get('token', '')
@@ -53,3 +57,5 @@ class RegisterView(APIView):
         except IntegrityError:
             return Response({}, status=HTTP_400_BAD_REQUEST)
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
+
+    
