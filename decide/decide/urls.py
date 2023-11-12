@@ -25,7 +25,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('doc/', schema_view),
     path('gateway/', include('gateway.urls')),
-    path('',include('home.urls'))
+    path('',include('home.urls')),
+    path('statistics/',include('vot_statistics.urls')),
 ]
 
 for module in settings.MODULES:
