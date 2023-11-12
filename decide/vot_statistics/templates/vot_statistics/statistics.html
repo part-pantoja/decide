@@ -1,6 +1,7 @@
+<!-- statistics/templates/statistics/statistics.html -->
 <h1>Statistics</h1>
 <ul>
-
+  {% for vote_statistic in all_vote_statistics %}
     <li>{{ vote_statistic.voting.name }} - {{ vote_statistic.option.option }}: {{ vote_statistic.vote_count }} votes</li>
-  
+  {% endfor %}
 </ul>
