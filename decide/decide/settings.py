@@ -181,5 +181,7 @@ if os.path.exists("config.jsonnet"):
     for k, v in config.items():
         vars()[k] = v
 
+LOGOUT_REDIRECT_URL = '/'
+
 
 INSTALLED_APPS = INSTALLED_APPS + MODULES

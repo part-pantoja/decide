@@ -7,7 +7,4 @@ class HomeView(TemplateView):
     template_name = 'home/home.html'
 
 def home(request):
-    votings = list(Voting.objects.values())
-    return render(request, 'home/home.html', {
-        'votings':votings
-    })
+    return render(request, 'home/home.html')
