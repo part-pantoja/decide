@@ -34,6 +34,13 @@ class QuestionOptionInline(admin.TabularInline):
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [QuestionOptionInline]
 
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.save()
+            if obj.is_blank_vote_allowed:
+                opt = QuestionOption(question=obj, option="Blank Vote", number=0)
+                opt.save()
+
 
 class VotingAdmin(admin.ModelAdmin):
     list_display = ('name', 'start_date', 'end_date')
