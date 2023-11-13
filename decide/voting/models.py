@@ -8,7 +8,13 @@ from base.models import Auth, Key
 
 
 class Question(models.Model):
+
+    class TypeChoices(models.TextChoices):
+        SINGLE_CHOICE = 'single_choice', 'Single Choice'
+        MULTIPLE_CHOICE = 'multiple_choice', 'Multiple Choice'
+
     desc = models.TextField()
+    type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
 
     def __str__(self):
         return self.desc
