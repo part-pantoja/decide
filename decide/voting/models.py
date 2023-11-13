@@ -10,6 +10,8 @@ from base.models import Auth, Key
 class Question(models.Model):
     desc = models.TextField()
 
+    user_response_enabled = models.BooleanField(default=False)
+
     def __str__(self):
         return self.desc
 
@@ -66,8 +68,10 @@ class Voting(models.Model):
         for vote in votes:
             for info in vote:
                 if info == 'a':
+                    print("***********************1",vote)
                     votes_format.append(vote[info])
                 if info == 'b':
+                    print("***********************2",vote)
                     votes_format.append(vote[info])
             vote_list.append(votes_format)
             votes_format = []

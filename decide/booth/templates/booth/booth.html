@@ -118,6 +118,7 @@
         <div v-if="!signup">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
             <h2>[[ voting.question.desc ]]</h2>
+            <!--
             <form v-for="opt in voting.question.options" :key="opt.number">
                 <div class="form-group">
                     <input type="radio" v-model="selected"
@@ -127,6 +128,23 @@
                         [[ opt.option ]]
                 </div>
             </form>
+            -->
+
+            <form v-if="!voting.question.user_response_enabled">
+                <div class="form-group" v-for="opt in voting.question.options" :key="opt.number">
+                    <input type="radio" v-model="selected"
+                                :id="'q' + opt.number"
+                                name="question"
+                                :value="opt.number">
+                        [[ opt.option ]]
+                </div>
+            </form>
+
+            <div v-if="voting.question.user_response_enabled">
+                <label for="response">{% trans "Your Response" %}</label>:
+                <textarea v-model="userResponse" id="userResponse" rows="4" cols="50"></textarea>
+            </div>
+
             <button class="btn btn-primary mt-3" v-on:click="decideSend">
                 {% trans "Vote" %}
             </button>
@@ -261,14 +279,39 @@
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
+                decideEncryptOpen() {
+                    var bigmsg = BigInt.fromJSONObject(this.userResponse.trim());
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
                 decideSend(evt) {
                     evt.preventDefault();
-                    var v = this.decideEncrypt();
-                    var data = {
-                        vote: {a: v.alpha.toString(), b: v.beta.toString()},
-                        voting: this.voting.id,
-                        voter: this.user.id,
-                        token: this.token
+
+                    if (this.voting.question.user_response_enabled) {
+                        // Validar que se haya ingresado una respuesta
+                        if (!this.userResponse.trim()) {
+                            this.showAlert("danger", '{% trans "Please enter your response." %}');
+                            return;
+                        }
+
+                        // Realizar acciones con la respuesta del usuario
+                        var v = this.decideEncryptOpen();
+
+                        var data = {
+                            vote: {a: v.alpha.toString(), b: v.beta.toString()},
+                            voting: this.voting.id,
+                            voter: this.user.id,
+                            token: this.token
+                        }
+
+                    }else{
+                        var v = this.decideEncrypt();
+                        var data = {
+                            vote: {a: v.alpha.toString(), b: v.beta.toString()},
+                            voting: this.voting.id,
+                            voter: this.user.id,
+                            token: this.token
+                        }
                     }
                     this.postData("{% url "gateway" "store" "/" %}", data)
                         .then(data => {
