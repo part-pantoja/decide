@@ -9,6 +9,7 @@ from base.models import Auth, Key
 
 class Question(models.Model):
     desc = models.TextField()
+    is_blank_vote_allowed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.desc

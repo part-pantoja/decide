@@ -25,7 +25,6 @@ class VotingView(generics.ListCreateAPIView):
             version = settings.DEFAULT_VERSION
         if version == 'v2':
             self.serializer_class = SimpleVotingSerializer
-
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -40,6 +39,11 @@ class VotingView(generics.ListCreateAPIView):
         for idx, q_opt in enumerate(request.data.get('question_opt')):
             opt = QuestionOption(question=question, option=q_opt, number=idx)
             opt.save()
+        is_blank_vote_allowed = request.data.get('is_blank_vote_allowed')
+        if is_blank_vote_allowed:
+            blank_opt = QuestionOption(question=question, option='Blank Vote', number = 0)
+            blank_opt.save()
+        
         voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'),
                 question=question)
         voting.save()
@@ -58,7 +62,6 @@ class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     permission_classes = (UserIsStaff,)
-
     def put(self, request, voting_id, *args, **kwars):
         action = request.data.get('action')
         if not action:
