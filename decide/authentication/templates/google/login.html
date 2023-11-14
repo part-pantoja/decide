@@ -7,8 +7,12 @@
 </head>
 <body>
     {% load socialaccount %}
-    <h2>Google Login</h2>
+    <h2>Login</h2>
+    <a href="{% url 'login-sin-google' %}">Login</a>
+    <br>
+    <br>
     <a href="{% provider_login_url 'google' %}?next=/">Login with Google</a>
+    
 
 </body>
 </html>
