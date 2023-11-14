@@ -12,8 +12,10 @@ class Question(models.Model):
     class TypeChoices(models.TextChoices):
         SINGLE_CHOICE = 'single_choice', 'Single Choice'
         MULTIPLE_CHOICE = 'multiple_choice', 'Multiple Choice'
+        POINTS_OPTIONS = 'points_options', 'Points Options'
 
     desc = models.TextField()
+    weight = models.PositiveIntegerField(blank=True, null=True)
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
 
     def __str__(self):
@@ -37,6 +39,7 @@ class QuestionOption(models.Model):
 class Voting(models.Model):
     name = models.CharField(max_length=200)
     desc = models.TextField(blank=True, null=True)
+    points = models.PositiveIntegerField(blank=True, null=True)
     question = models.ForeignKey(Question, related_name='voting', on_delete=models.CASCADE)
 
     start_date = models.DateTimeField(blank=True, null=True)

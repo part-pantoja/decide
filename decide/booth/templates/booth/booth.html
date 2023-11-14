@@ -132,6 +132,26 @@
                     {% trans "Vote" %}
                 </button>
             </div>
+            <div v-if="voting.question.type === 'points_options'">
+                <form>
+                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                        <label :for="'q' + opt.number">
+                            <input type="checkbox"
+                                v-model="selectedOptions"  
+                                :id="'q' + opt.number"
+                                :value="opt.number">
+                            {{ opt.option }}
+                        </label>
+                        <input type="number"
+                            v-model="optionWeights[opt.number]"
+                            :id="'weight_q' + opt.number"
+                            placeholder="Weight">
+                    </div>
+                </form>
+                <button class="btn btn-primary mt-3" v-on:click="decidePointsSend">
+                    {% trans "Vote" %}
+                </button>
+            </div>
             <div v-else>
                 <form v-for="opt in voting.question.options" :key="opt.number">
                     <div class="form-group">
@@ -180,6 +200,7 @@
                 return {
                     voting: voting,
                     selectedOptions: [],
+                    optionWeights: {},
                     selected: "",
                     signup: true,
                     successVote: false,
@@ -307,6 +328,48 @@
                     var votes = this.selectedOptions.map(option => {
                         var v = this.decideEncrypt(option);
                         return { a: v.alpha.toString(), b: v.beta.toString() };
+                    });
+
+                    var data = {
+                        votes: votes,
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                    .then(data => {
+                        this.successVote = true;
+                        this.alertShow = false;
+                        this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                    })
+                    .catch(error => {
+                        this.successVote = false;
+                        this.showAlert("danger", '{% trans "Error: " %}' + error);
+                    });
+                },
+                decidePointsSend(evt) {
+                    evt.preventDefault();
+                    if (this.selectedOptions.length === 0) {
+                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
+                        return;
+                    }
+                    let totalSelectedWeight = 0;
+                    for (const option of this.selectedOptions) {
+                        totalSelectedWeight += this.optionWeights[option]
+                    }
+                    if (totalSelectedWeight !== this.voting.question.weight){
+                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
+                        return;
+                    }
+                    var votes = this.selectedOptions.map(option => {
+                        var v = this.decideEncrypt(option);
+                        return { 
+                            option: option,
+                            weight: this.optionWeights[option],
+                            alpha: v.alpha.toString(), 
+                            beta: v.beta.toString() 
+                        };
                     });
 
                     var data = {
