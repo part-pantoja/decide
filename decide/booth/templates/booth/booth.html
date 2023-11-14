@@ -130,7 +130,7 @@
             </form>
             -->
 
-            <form v-if="!voting.question.user_response_enabled">
+            <form v-if="voting.question.type === 'single_choice'">
                 <div class="form-group" v-for="opt in voting.question.options" :key="opt.number">
                     <input type="radio" v-model="selected"
                                 :id="'q' + opt.number"
@@ -140,8 +140,8 @@
                 </div>
             </form>
 
-            <div v-if="voting.question.user_response_enabled">
-                <label for="response">{% trans "Your Response" %}</label>:
+            <div v-if="voting.question.type === 'open_response'">
+                <label for="response">{% trans "Your Response (Numbers only)" %}</label>:
                 <textarea v-model="userResponse" id="userResponse" rows="4" cols="50"></textarea>
             </div>
 
@@ -287,10 +287,14 @@
                 decideSend(evt) {
                     evt.preventDefault();
 
-                    if (this.voting.question.user_response_enabled) {
+                    if (this.voting.question.type === 'open_response') {
                         // Validar que se haya ingresado una respuesta
                         if (!this.userResponse.trim()) {
                             this.showAlert("danger", '{% trans "Please enter your response." %}');
+                            return;
+                        }
+                        if(isNaN(this.userResponse.trim())){
+                            this.showAlert("danger", '{% trans "Please enter only numbers." %}');
                             return;
                         }
 
