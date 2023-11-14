@@ -144,15 +144,18 @@
                         </label>
                         <input type="number"
                             v-model="optionWeights[opt.number]"
-                            :id="'weight_q' + opt.number"
-                            placeholder="Weight">
+                            :id="'weight_q' + opt.pointsGiven"
+                            :placeholder="'Weight (' + totalPoints + ' available)'"
+                            :max="totalPoints"
+                            @input="updateTotalPoints">
                     </div>
                 </form>
+                <p>Total points remaining: {{ totalPoints }}</p>
                 <button class="btn btn-primary mt-3" v-on:click="decidePointsSend">
                     {% trans "Vote" %}
                 </button>
             </div>
-            <div v-else>
+            <div v-if="voting.question.type === 'single_choice'">
                 <form v-for="opt in voting.question.options" :key="opt.number">
                     <div class="form-group">
                         <input type="radio" v-model="selected"
@@ -187,7 +190,7 @@
     <script src="{% static "crypto/elgamal.js" %}"></script>
 
     <!-- Vuejs -->
-    <script src="https://unpkg.com/vue@latest"</script>
+    <script src="https://unpkg.com/vue@latest"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
 
@@ -221,8 +224,11 @@
                     keybits: {{ KEYBITS }}
                 }
             },
+            updateTotalPoints() { 
+                this.totalPoints = 10 - Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0),
+            },
             beforeMount() {
-                this.init()
+                this.init(),
                 ElGamal.BITS = this.keybits;
             },
             methods: {
