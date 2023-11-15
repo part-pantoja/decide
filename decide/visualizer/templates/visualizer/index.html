@@ -15,6 +15,9 @@
     <h5> <a href="{% url 'booth:booth_detail' voting.id %}">Votar</a>
     </h5>
     <br>
+    <h5> <a href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
+    </h5>
+    <br>
 
     {% endfor %}
 
