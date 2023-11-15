@@ -13,6 +13,7 @@ class Question(models.Model):
         SINGLE_CHOICE = 'single_choice', 'Single Choice'
         MULTIPLE_CHOICE = 'multiple_choice', 'Multiple Choice'
         OPEN_RESPONSE = 'open_response', 'Open Response'
+        YESNO_RESPONSE = 'yesno_response', 'YesNo Response'
 
     desc = models.TextField()
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
