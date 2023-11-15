@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/dancorfon/Escritorio/decide/egcenv"
+VIRTUAL_ENV="/home/egc2324/Escritorio/Pantoja-mirama/decide/egcenv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

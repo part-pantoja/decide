@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+egcenv/
 build/
 develop-eggs/
 dist/
@@ -86,6 +87,7 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
+egcenv/
 
 # Spyder project settings
 .spyderproject
@@ -101,3 +103,7 @@ ENV/
 .mypy_cache/
 
 .vagrant
+
+
+loadtest/gen_census.py
+loadtest/locustfile.py
