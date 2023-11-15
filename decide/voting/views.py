@@ -39,10 +39,6 @@ class VotingView(generics.ListCreateAPIView):
         for idx, q_opt in enumerate(request.data.get('question_opt')):
             opt = QuestionOption(question=question, option=q_opt, number=idx)
             opt.save()
-        is_blank_vote_allowed = request.data.get('is_blank_vote_allowed')
-        if is_blank_vote_allowed:
-            blank_opt = QuestionOption(question=question, option='Blank Vote', number = 0)
-            blank_opt.save()
         
         voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'),
                 question=question)
