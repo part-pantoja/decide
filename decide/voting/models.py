@@ -6,6 +6,8 @@ from django.dispatch import receiver
 from base import mods
 from base.models import Auth, Key
 
+import math
+
 
 class Question(models.Model):
     
@@ -146,17 +148,56 @@ class Voting(models.Model):
         if self.question.type == 'open_response':
             # Si es una pregunta de respuesta abierta, agrupa las respuestas
             response_counts = {}
+            list_votes=[]
             for vote in tally:
+                list_votes.append(vote)
                 if vote is not None:
                     response_counts[vote] = response_counts.get(vote, 0) + 1
+
+            sorted_votes = sorted(list_votes)
+
+            value = 0
+            num_votes = 0
+
+            #Cálculo de la media
+            for vote, count in response_counts.items():
+                value += vote * count
+                num_votes += count
+            
+            media = value/num_votes
+
+            # Calcular la varianza
+            variance = sum((vote - media) ** 2 * count for vote, count in response_counts.items()) / num_votes
+
+            # Calcular la desviación estándar (raíz cuadrada de la varianza)
+            standard_deviation = math.sqrt(variance)
+
+            median_index = len(sorted_votes) // 2
+
+            if len(sorted_votes) % 2 == 1:
+                # Si la cantidad de votos es impar
+                median = sorted_votes[median_index]
+            else:
+                # Si la cantidad de votos es par
+                median = (sorted_votes[median_index - 1] + sorted_votes[median_index]) / 2
 
             for vote, count in response_counts.items():
                 opts.append({
                     'option': vote,
-                    'votes': count
+                    'votes': count,
+                    'media': media,
+                    'median': median,
+                    'standard_deviation': standard_deviation,
+                    'variance': variance,
                 })
         else:
             # Para otros tipos de pregunta, realiza el recuento normal
+            total = 0
+            for opt in options:
+                if isinstance(tally, list):
+                    votes = tally.count(opt.number)
+                    total += votes
+
             for opt in options:
                 if isinstance(tally, list):
                     votes = tally.count(opt.number)
@@ -165,10 +206,11 @@ class Voting(models.Model):
                 opts.append({
                     'option': opt.option,
                     'number': opt.number,
-                    'votes': votes
+                    'votes': votes,
+                    'percentage': (votes/total)*100
                 })
 
-        data = {'type': 'IDENTITY', 'options': opts}
+        data = {'type': 'IDENTITY', 'options': opts, 'media': media}
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
