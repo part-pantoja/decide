@@ -183,6 +183,7 @@ class MixCrypt:
         else:
             k = self.k
 
+        print("Contenido de cipher:", cipher)
         a, b = map(int, cipher)
         a1, b1 = map(int, self.encrypt(1, k=k))
         p = int(k.p)

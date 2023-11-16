@@ -8,10 +8,11 @@ from base.models import Auth, Key
 
 
 class Question(models.Model):
+    id = models.PositiveIntegerField(primary_key=True)
     desc = models.TextField()
 
     def __str__(self):
-        return self.desc
+        return f"{self.id}: {self.desc}"
 
 
 class QuestionOption(models.Model):
@@ -24,6 +25,10 @@ class QuestionOption(models.Model):
             self.number = self.question.options.count() + 2
         return super().save()
 
+    def get_question_identifier(self):
+        return f"question_{self.question.id}" if self.question and self.question.id else None
+    
+
     def __str__(self):
         return '{} ({})'.format(self.option, self.number)
 
@@ -31,7 +36,7 @@ class QuestionOption(models.Model):
 class Voting(models.Model):
     name = models.CharField(max_length=200)
     desc = models.TextField(blank=True, null=True)
-    question = models.ForeignKey(Question, related_name='voting', on_delete=models.CASCADE)
+    questions = models.ManyToManyField(Question, related_name='votings')
 
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
@@ -57,9 +62,32 @@ class Voting(models.Model):
         self.pub_key = pk
         self.save()
 
-    def get_votes(self, token=''):
+    def get_votes(self, token='', question=None):
         # gettings votes from store
         votes = mods.get('store', params={'voting_id': self.id}, HTTP_AUTHORIZATION='Token ' + token)
+        all_votes = []
+    
+        for question in self.questions.all():
+            question_votes = []
+            for vote in votes:
+                print(vote)
+                if 'question_id' in vote and vote['question_id'] == question.id:
+                    question_votes.append(vote)
+
+            all_votes.append({
+                'question': question.desc,
+                'votes': question_votes
+            })
+            print("Contenido de los votos:",question_votes)
+        anon_votes = []
+        for vote in votes:
+            # Asumiendo que 'a' y 'b' son las claves que deseas obtener de cada voto
+            a = vote.get('a', None)
+            b = vote.get('b', None)
+
+            if a is not None and b is not None:
+                anon_votes.append([a, b])
+        print("Contenido de los votos:",anon_votes)
         # anon votes
         votes_format = []
         vote_list = []
@@ -71,63 +99,84 @@ class Voting(models.Model):
                     votes_format.append(vote[info])
             vote_list.append(votes_format)
             votes_format = []
-        return vote_list
+        print("--------------------------------------", all_votes)
+        return all_votes
 
     def tally_votes(self, token=''):
         '''
         The tally is a shuffle and then a decrypt
         '''
+        all_votes = []
+        for question in self.questions.all():
+            votes = self.get_votes(token, question)
 
-        votes = self.get_votes(token)
+            auth = self.auths.first()
+            shuffle_url = "/shuffle/{}/".format(self.id)
+            decrypt_url = "/decrypt/{}/".format(self.id)
+            auths = [{"name": a.name, "url": a.url} for a in self.auths.all()]
 
-        auth = self.auths.first()
-        shuffle_url = "/shuffle/{}/".format(self.id)
-        decrypt_url = "/decrypt/{}/".format(self.id)
-        auths = [{"name": a.name, "url": a.url} for a in self.auths.all()]
+            # first, we do the shuffle
+            data = { "msgs": votes }
+            response = mods.post('mixnet', entry_point=shuffle_url, baseurl=auth.url, json=data,
+                    response=True)
+            
+            if response.status_code != 200:
+                data = {"msgs": response.json()}
+            else:
+                # Manejar el error de manera apropiada
+                print(f"Error: {response.status_code}")
 
-        # first, we do the shuffle
-        data = { "msgs": votes }
-        response = mods.post('mixnet', entry_point=shuffle_url, baseurl=auth.url, json=data,
-                response=True)
-        if response.status_code != 200:
-            # TODO: manage error
-            pass
+            # then, we can decrypt that
+            
+            data = {"msgs": response.json()}
+            response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
+                    response=True)
 
-        # then, we can decrypt that
-        data = {"msgs": response.json()}
-        response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
-                response=True)
+            if response.status_code != 200:
+                # TODO: manage error
+                pass
+            
+            all_votes.append({
+            'question': question.desc,
+            'tally': response.json()  # Store the tally for each question
+            })
 
-        if response.status_code != 200:
-            # TODO: manage error
-            pass
-
-        self.tally = response.json()
+        self.tally = all_votes
         self.save()
 
         self.do_postproc()
 
     def do_postproc(self):
         tally = self.tally
-        options = self.question.options.all()
+        postproc_data = []
 
-        opts = []
-        for opt in options:
-            if isinstance(tally, list):
-                votes = tally.count(opt.number)
-            else:
-                votes = 0
-            opts.append({
-                'option': opt.option,
-                'number': opt.number,
-                'votes': votes
+        for question_data in self.tally:
+            question_desc = question_data['question']
+            question_tally = question_data['tally']
+
+            options = question_desc.options.all()
+
+            opts = []
+            for opt in options:
+                if isinstance(tally, list):
+                    votes = tally.count(opt.number)
+                else:
+                    votes = 0
+                opts.append({
+                    'option': opt.option,
+                    'number': opt.number,
+                    'votes': votes
+                })
+            postproc_data.append({
+                'question': question.desc,
+                'options': opts
             })
 
-        data = { 'type': 'IDENTITY', 'options': opts }
-        postp = mods.post('postproc', json=data)
+            data = { 'type': 'IDENTITY', 'options': opts }
+            postp = mods.post('postproc', json=data)
 
-        self.postproc = postp
-        self.save()
+            self.postproc = postproc_data
+            self.save()
 
     def __str__(self):
         return self.name

@@ -3,5 +3,5 @@ from .views import BoothView
 
 
 urlpatterns = [
-    path('<int:voting_id>/', BoothView.as_view()),
+    path('<int:pk>/', BoothView.as_view()),
 ]
