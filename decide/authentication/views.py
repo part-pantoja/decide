@@ -7,24 +7,17 @@ from rest_framework.status import (
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, get_user_model
-from django.utils.text import capfirst
-from rest_framework import status
-from django.http import HttpResponse
+from django.contrib.auth import login, get_user_model
 from django.views.generic import TemplateView
 from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import UsernameField, AuthenticationForm
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext, gettext_lazy as _
-from django.contrib.auth.views import LoginView
+from django.utils.translation import gettext_lazy as _
 
-
-from allauth.account.auth_backends import AuthenticationBackend
 from django.contrib import messages
 
 
@@ -66,7 +59,7 @@ class LoginView(APIView):
             
             return redirect('bienvenida', username=user.username)
         else:
-            
+            messages.error(request, 'Nombre de usuario o contraseña incorrectos')
             return render(request, 'registro/loginSinGoogle.html', {'form': form})
         
 
