@@ -133,29 +133,28 @@
                 </button>
             </div>
             <div v-if="voting.question.type === 'points_options'">
+                Puede repartir [[this.totalPointsToAssign]] puntos
                 <form>
                     <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
-                        <label :for="'q' + opt.number">
-                            <input type="checkbox"
-                                v-model="selectedOptions"  
-                                :id="'q' + opt.number"
-                                :value="opt.number">
-                            {{ opt.option }}
-                        </label>
+                        [[ opt.option ]]
                         <input type="number"
                             v-model="optionWeights[opt.number]"
                             :id="'weight_q' + opt.pointsGiven"
-                            :placeholder="'Weight (' + totalPoints + ' available)'"
-                            :max="totalPoints"
-                            @input="updateTotalPoints">
+                            :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
+                            :max="totalPointsToAssign + optionWeights[opt.number]"
+                            :min = 0
+                            @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
                     </div>
+
                 </form>
-                <p>Total points remaining: {{ totalPoints }}</p>
-                <button class="btn btn-primary mt-3" v-on:click="decidePointsSend">
-                    {% trans "Vote" %}
-                </button>
+                <div v-if="totalPointsToAssign == 0 ">
+
+                    <button class="btn btn-primary mt-3" v-on:click="decideMultipleSend">
+                        {% trans "Vote" %}
+                    </button>
+                </div>
             </div>
-            <div v-if="voting.question.type === 'single_choice'">
+            <div v-else>
                 <form v-for="opt in voting.question.options" :key="opt.number">
                     <div class="form-group">
                         <input type="radio" v-model="selected"
@@ -169,6 +168,7 @@
                     {% trans "Vote" %}
                 </button>
             </div>
+            
         </div>
 
     </div>
@@ -202,9 +202,11 @@
             data() {
                 return {
                     voting: voting,
+                    selected: "",
                     selectedOptions: [],
                     optionWeights: {},
-                    selected: "",
+                    totalPointsToAssign: voting.question.weight,
+                    assignedWeight: 0,
                     signup: true,
                     successVote: false,
                     alertShow: false,
@@ -224,11 +226,8 @@
                     keybits: {{ KEYBITS }}
                 }
             },
-            updateTotalPoints() { 
-                this.totalPoints = 10 - Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0),
-            },
             beforeMount() {
-                this.init(),
+                this.init()
                 ElGamal.BITS = this.keybits;
             },
             methods: {
@@ -305,6 +304,17 @@
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
+                updateTotalPointsToAssign() { 
+                    const totalWeight = this.voting.question.weight;
+                    const assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
+                    this.totalPointsToAssign = totalWeight - assignedWeight
+
+                },
+                updateAssignedWeight() { 
+                    this.assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
+
+                },
+                
                 decideSend(evt) {
                     evt.preventDefault();
                     var v = this.decideEncrypt();
@@ -324,77 +334,6 @@
                             this.succesVote = false;
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
-                },
-                decideMultipleSend(evt) {
-                    evt.preventDefault();
-                    if (this.selectedOptions.length === 0) {
-                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
-                        return;
-                    }
-                    var votes = this.selectedOptions.map(option => {
-                        var v = this.decideEncrypt(option);
-                        return { a: v.alpha.toString(), b: v.beta.toString() };
-                    });
-
-                    var data = {
-                        votes: votes,
-                        voting: this.voting.id,
-                        voter: this.user.id,
-                        token: this.token
-                    };
-
-                    this.postData("{% url "gateway" "store" "/" %}", data)
-                    .then(data => {
-                        this.successVote = true;
-                        this.alertShow = false;
-                        this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
-                    })
-                    .catch(error => {
-                        this.successVote = false;
-                        this.showAlert("danger", '{% trans "Error: " %}' + error);
-                    });
-                },
-                decidePointsSend(evt) {
-                    evt.preventDefault();
-                    if (this.selectedOptions.length === 0) {
-                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
-                        return;
-                    }
-                    let totalSelectedWeight = 0;
-                    for (const option of this.selectedOptions) {
-                        totalSelectedWeight += this.optionWeights[option]
-                    }
-                    if (totalSelectedWeight !== this.voting.question.weight){
-                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
-                        return;
-                    }
-                    var votes = this.selectedOptions.map(option => {
-                        var v = this.decideEncrypt(option);
-                        return { 
-                            option: option,
-                            weight: this.optionWeights[option],
-                            alpha: v.alpha.toString(), 
-                            beta: v.beta.toString() 
-                        };
-                    });
-
-                    var data = {
-                        votes: votes,
-                        voting: this.voting.id,
-                        voter: this.user.id,
-                        token: this.token
-                    };
-
-                    this.postData("{% url "gateway" "store" "/" %}", data)
-                    .then(data => {
-                        this.successVote = true;
-                        this.alertShow = false;
-                        this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
-                    })
-                    .catch(error => {
-                        this.successVote = false;
-                        this.showAlert("danger", '{% trans "Error: " %}' + error);
-                    });
                 },
                 showAlert(lvl, msg) {
                     this.alertLvl = lvl;
