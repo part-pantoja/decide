@@ -11,16 +11,26 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
+from django.utils.text import capfirst
 from rest_framework import status
-from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponse
 from django.views.generic import TemplateView
+from django import forms
+from django.contrib.auth import password_validation
+from django.contrib.auth.forms import UsernameField, AuthenticationForm
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext, gettext_lazy as _
+from django.contrib.auth.views import LoginView
+
+
+from allauth.account.auth_backends import AuthenticationBackend
+from django.contrib import messages
 
 
 from .serializers import UserSerializer
 
+UserModel = get_user_model()
 
 
 def login2(request):
@@ -40,8 +50,6 @@ class GoogleView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['username'] = username
         return context
-        
-        
 
 
 
@@ -60,6 +68,33 @@ class LoginView(APIView):
         else:
             
             return render(request, 'registro/loginSinGoogle.html', {'form': form})
+        
+
+class EmailLoginView(APIView):
+    def login_correo(request):
+        if request.method == 'GET':
+            return render(request, 'registro/loginSinGoogleEmail.html')
+
+        if request.method == 'POST':
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+
+            usuarios_con_correo = User.objects.filter(email=email)
+
+            if usuarios_con_correo.exists():
+                usuario = usuarios_con_correo.first()
+
+                if usuario.check_password(password):
+                    login(request, usuario, backend='django.contrib.auth.backends.ModelBackend')
+                    return redirect('bienvenida', username=usuario.username)
+                else:
+                    messages.error(request, 'Contraseña incorrecta')
+                    return render(request, 'registro/loginSinGoogleEmail.html')
+
+            else:
+                messages.error(request, 'Correo no encontrado')
+                return render(request, 'registro/loginSinGoogleEmail.html')
+        
 
 
 class GetUserView(APIView):
@@ -104,7 +139,7 @@ class RegisterView(APIView):
         return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
     '''
     def post(self, request, *args, **kwargs):
-        form = UserCreationForm(request.data)
+        form = UserCreationForm2(request.data)
         errors = []
         if form.is_valid():
             user = form.save()
@@ -117,10 +152,82 @@ class RegisterView(APIView):
             return render(request, 'registro/registry.html', {'form': form, 'errors': errors})
     
     def get(self, request):
-        form = UserCreationForm()
+        form = UserCreationForm2()
         return render(request, 'registro/registry.html', {'form':form})
 
 class WelcomeView(APIView):
     def get(self, request, username):
         return render(request, 'registro/welcome.html', {'username': username})
+    
+
+
+class UserCreationForm2(forms.ModelForm):
+    """
+    A form that creates a user, with no privileges, from the given username and
+    password.
+    """
+
+    error_messages = {
+        "password_mismatch": _("The two password fields didn’t match."),
+    }
+
+    email = forms.EmailField(
+        label=_("Email"),
+        required=True,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+
+    password1 = forms.CharField(
+        label=_("Password"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    password2 = forms.CharField(
+        label=_("Password confirmation"),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        strip=False,
+        help_text=_("Enter the same password as before, for verification."),
+    )
+
+    class Meta:
+        model = User
+        fields = ("username", "email")
+        field_classes = {"username": UsernameField}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self._meta.model.USERNAME_FIELD in self.fields:
+            self.fields[self._meta.model.USERNAME_FIELD].widget.attrs[
+                "autofocus"
+            ] = True
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise ValidationError(
+                self.error_messages["password_mismatch"],
+                code="password_mismatch",
+            )
+        return password2
+
+    def _post_clean(self):
+        super()._post_clean()
+        # Validate the password after self.instance is updated with form data
+        # by super().
+        password = self.cleaned_data.get("password2")
+        if password:
+            try:
+                password_validation.validate_password(password, self.instance)
+            except ValidationError as error:
+                self.add_error("password2", error)
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+        return user
+
 
