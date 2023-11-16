@@ -144,6 +144,26 @@
                 <label for="response">{% trans "Your Response (Numbers only)" %}</label>:
                 <textarea v-model="userResponse" id="userResponse" rows="4" cols="50"></textarea>
             </div>
+            
+            <div v-if="voting.question.type === 'yesno_response'">
+                
+                <div class="form-group">
+                    <input type="radio" v-model="selected" 
+                    :id="'q' + voting.question.options[0].number" 
+                    name="question" 
+                    :value="voting.question.options[0].number">
+                    Sí
+                </div>
+                <div class="form-group">
+                    <input type="radio" v-model="selected" 
+                    :id="'q' + voting.question.options[1].number" 
+                    name="question" 
+                    :value="voting.question.options[1].number">
+                    No
+                </div>
+
+            </div>
+            
 
             <button class="btn btn-primary mt-3" v-on:click="decideSend">
                 {% trans "Vote" %}
