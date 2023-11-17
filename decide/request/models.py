@@ -13,8 +13,7 @@ class Request(models.Model):
     status = models.CharField(
         max_length=10,
         choices=[(tag, tag.value) for tag in RequestStatus],
-        default=RequestStatus.PENDING.value
-    )
+        default=RequestStatus.PENDING.value)
     
     class Meta:
         unique_together = (('voting_id', 'voter_id'),)

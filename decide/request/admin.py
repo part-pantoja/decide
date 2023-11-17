@@ -16,7 +16,7 @@ def decline(ModelAdmin, request, queryset):
 
 
 class RequestAdmin(admin.ModelAdmin):
-
     actions = [accept, decline]
+
 
 admin.site.register(Request, RequestAdmin)
