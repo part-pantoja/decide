@@ -18,6 +18,16 @@ from django.contrib.auth.forms import UsernameField, AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
+
+
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
 from django.contrib import messages
 
 
@@ -110,35 +120,52 @@ class LogoutView(APIView):
 
 
 class RegisterView(APIView):
-    '''
-    def post(self, request):
-        key = request.data.get('token', '')
-        tk = get_object_or_404(Token, key=key)
-        if not tk.user.is_superuser:
-            return Response({}, status=HTTP_401_UNAUTHORIZED)
-
-        username = request.data.get('username', '')
-        pwd = request.data.get('password', '')
-        if not username or not pwd:
-            return Response({}, status=HTTP_400_BAD_REQUEST)
-
-        try:
-            user = User(username=username)
-            user.set_password(pwd)
-            user.save()
-            token, _ = Token.objects.get_or_create(user=user)
-        except IntegrityError:
-            return Response({}, status=HTTP_400_BAD_REQUEST)
-        return Response({'user_pk': user.pk, 'token': token.key}, HTTP_201_CREATED)
-    '''
     def post(self, request, *args, **kwargs):
         form = UserCreationForm2(request.data)
         errors = []
         if form.is_valid():
             user = form.save()
-            token, _ = Token.objects.get_or_create(user=user)
+
+            # Genera el token para el usuario recién registrado
+
+            token = default_token_generator.make_token(user)
+
+            #Guardar el token en el campo de first_name del user
+            user.first_name = token
+            #Marcar como False el campo is_active
+            user.is_active = False
+            user.save()
+
+            name = request.POST['username']
+            email = request.POST['email']
+            emailCorporativo = settings.EMAIL_HOST_USER
+            subject = 'Registro en decide'
+            message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
+            message2 = 'Por favor introduce el codigo en la página que le ha redirigido o http://127.0.0.1:8000/authentication/verificar-correo/' + name + '/ para verificar su identidad: ' + token
+            message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
+
+            template = render_to_string('registro/email_template.html', {
+                'name':name,
+                'email':email,
+                'emailCorporativo':emailCorporativo,
+                'message':message,
+                'message2':message2,
+                'message3':message3
+            })
+
+            email = EmailMessage(
+                subject,
+                template,
+                settings.EMAIL_HOST_USER,
+                [email]
+            )
+
+            email.fail_silently = False
+            email.send()
+
+            #token, _ = Token.objects.get_or_create(user=user)
             #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
-            return redirect('bienvenida', username=user.username)
+            return redirect('verificar_correo', username=user.username)
         else:
             #return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
             errors = form.errors
@@ -147,6 +174,38 @@ class RegisterView(APIView):
     def get(self, request):
         form = UserCreationForm2()
         return render(request, 'registro/registry.html', {'form':form})
+
+    
+class VerifyEmailView(APIView):
+    def verificar_codigo(request, username):
+        if request.method == 'GET':
+            return render(request, 'registro/verification_code.html', {'username':username})
+        if request.method == 'POST':
+            code = request.POST.get('verification_code')
+
+            usuario_es_token = User.objects.filter(username=username)
+
+            if usuario_es_token.exists():
+                usuario = usuario_es_token.first()
+
+                if usuario.first_name == code:
+                    usuario.is_active = True
+                    usuario.first_name = ''
+                    usuario.save()
+                    
+                    login(request, usuario, backend='django.contrib.auth.backends.ModelBackend')
+                    messages.success(request, '¡Te has registrado con éxito!')
+                    return redirect('bienvenida', username=usuario.username)
+                else:
+                    messages.error(request, 'Codigo incorrecto, revisa tu email')
+                    return render(request, 'registro/verification_code.html')
+            else:
+                messages.error(request, 'Usuario no registrado')
+                return render(request, 'registro/verification_code.html')
+            
+
+    
+
 
 class WelcomeView(APIView):
     def get(self, request, username):

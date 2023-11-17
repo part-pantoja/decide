@@ -57,7 +57,7 @@
 </head>
 <body>
     <div class="form-container">
-        <form method="post" action="{% url 'verificar_codigo' user_id=user.id %}">
+        <form method="post" action="{% url 'verificar_correo' username %}">
             {% csrf_token %}
 
             <label for="verification_code">Verification Code:</label>
