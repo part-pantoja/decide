@@ -128,7 +128,7 @@
                         [[ opt.option ]]
                     </div>
                 </form>
-                <button class="btn btn-primary mt-3" v-on:click="decideMultipleSend">
+                <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
                     {% trans "Vote" %}
                 </button>
             </div>
@@ -136,6 +136,7 @@
                 Puede repartir [[this.totalPointsToAssign]] puntos
                 <form>
                     <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                        <br/>
                         [[ opt.option ]]
                         <input type="number"
                             v-model="optionWeights[opt.number]"
@@ -144,17 +145,17 @@
                             :max="totalPointsToAssign + optionWeights[opt.number]"
                             :min = 0
                             @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
+                        <br/>
                     </div>
 
                 </form>
                 <div v-if="totalPointsToAssign == 0 ">
-
-                    <button class="btn btn-primary mt-3" v-on:click="decideMultipleSend">
+                    <button class="btn btn-primary mt-3" v-on:click="decidePointsOptionsSend">
                         {% trans "Vote" %}
                     </button>
                 </div>
             </div>
-            <div v-else>
+            <div v-if="voting.question.type === 'single_choice'">
                 <form v-for="opt in voting.question.options" :key="opt.number">
                     <div class="form-group">
                         <input type="radio" v-model="selected"
@@ -304,6 +305,22 @@
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
+                decideMultipleOptionEncrypt() {
+                    var number = parseInt(this.selectedOptions.join("00"))
+                    var bigmsg = BigInt.fromJSONObject(number.toString());
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
+                decidePointsOptionEncrypt() {
+                    var concatenatedString = "";
+
+                    for (var key in this.optionWeights) {
+                        concatenatedString += key + "00" + this.optionWeights[key] + "00";
+                    }
+                    var bigmsg = BigInt.fromJSONObject(concatenatedString);
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
                 updateTotalPointsToAssign() { 
                     const totalWeight = this.voting.question.weight;
                     const assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
@@ -312,7 +329,6 @@
                 },
                 updateAssignedWeight() { 
                     this.assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
-
                 },
                 
                 decideSend(evt) {
@@ -324,6 +340,55 @@
                         voter: this.user.id,
                         token: this.token
                     }
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                
+                decideMultipleOptionSend(evt) {
+                    evt.preventDefault();
+                    if (this.selectedOptions.length === 0) {
+                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
+                        return;
+                    }
+                    var votes = this.decideMultipleOptionEncrypt();
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                        
+                },
+                decidePointsOptionsSend(evt) {
+                    evt.preventDefault();
+                    var votes =  this.decidePointsOptionEncrypt()
+                    
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+
                     this.postData("{% url "gateway" "store" "/" %}", data)
                         .then(data => {
                             this.successVote = true;
