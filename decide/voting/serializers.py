@@ -17,6 +17,7 @@ class QuestionSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('desc', 'options', 'weight','type')
 
 
+
 class VotingSerializer(serializers.HyperlinkedModelSerializer):
     question = QuestionSerializer(many=False)
     pub_key = KeySerializer()

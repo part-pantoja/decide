@@ -13,9 +13,11 @@ class Question(models.Model):
         SINGLE_CHOICE = 'single_choice', 'Single Choice'
         MULTIPLE_CHOICE = 'multiple_choice', 'Multiple Choice'
         POINTS_OPTIONS = 'points_options', 'Points Options'
+        OPEN_RESPONSE = 'open_response', 'Open Response'
 
     desc = models.TextField()
     weight = models.PositiveIntegerField(blank=True, null=True)
+
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
 
     def __str__(self):
@@ -117,6 +119,7 @@ class Voting(models.Model):
 
         self.do_postproc()
 
+    '''
     def do_postproc(self):
         tally = self.tally
         options = self.question.options.all()
@@ -138,6 +141,44 @@ class Voting(models.Model):
 
         self.postproc = postp
         self.save()
+    '''
+
+    def do_postproc(self):
+        tally = self.tally
+        options = self.question.options.all()
+
+        opts = []
+        if self.question.type == 'open_response':
+            # Si es una pregunta de respuesta abierta, agrupa las respuestas
+            response_counts = {}
+            for vote in tally:
+                if vote is not None:
+                    response_counts[vote] = response_counts.get(vote, 0) + 1
+
+            for vote, count in response_counts.items():
+                opts.append({
+                    'option': vote,
+                    'votes': count
+                })
+        else:
+            # Para otros tipos de pregunta, realiza el recuento normal
+            for opt in options:
+                if isinstance(tally, list):
+                    votes = tally.count(opt.number)
+                else:
+                    votes = 0
+                opts.append({
+                    'option': opt.option,
+                    'number': opt.number,
+                    'votes': votes
+                })
+
+        data = {'type': 'IDENTITY', 'options': opts}
+        postp = mods.post('postproc', json=data)
+
+        self.postproc = postp
+        self.save()
+
 
     def __str__(self):
         return self.name
