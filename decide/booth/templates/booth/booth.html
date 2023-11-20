@@ -306,7 +306,7 @@
                     return cipher;
                 },
                 decideMultipleOptionEncrypt() {
-                    var number = parseInt(this.selectedOptions.join("00"))
+                    var number = parseInt(this.selectedOptions.join("63789"))
                     var bigmsg = BigInt.fromJSONObject(number.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
@@ -315,7 +315,7 @@
                     var concatenatedString = "";
 
                     for (var key in this.optionWeights) {
-                        concatenatedString += key + "00" + this.optionWeights[key] + "00";
+                        concatenatedString += key + "63789" + this.optionWeights[key] + "63789";
                     }
                     var bigmsg = BigInt.fromJSONObject(concatenatedString);
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);

@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 from base import mods
 from base.models import Auth, Key
-
+import re
 
 class Question(models.Model):
 
@@ -104,9 +104,9 @@ class Voting(models.Model):
             pass
 
         # then, we can decrypt that
-        data = {"msgs": response.json()}
+        data = {"msgs": response.json()} 
         response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
-                response=True)
+            response=True)
 
         if response.status_code != 200:
             # TODO: manage error
@@ -115,7 +115,12 @@ class Voting(models.Model):
         self.tally = response.json()
         self.save()
 
-        self.do_postproc()
+        if self.question.type == 'multiple_choice':
+            self.do_postproc_multiple_choice()
+        elif self.question.type == 'points_options':
+            self.do_postproc_points_options()
+        else:
+            self.do_postproc()
 
     def do_postproc(self):
         tally = self.tally
@@ -138,6 +143,76 @@ class Voting(models.Model):
 
         self.postproc = postp
         self.save()
+
+    def do_postproc_multiple_choice(self):
+
+        tally = self.tally
+        options = self.question.options.all()
+        votos_unitarios = []
+
+        for voto in tally:
+            voto = str(voto)
+            votos = voto.split('63789')
+            for voto in votos: 
+                votos_unitarios.append(int(voto))
+
+        opts = []
+        for opt in options:
+            if isinstance(votos_unitarios, list):
+                votes = votos_unitarios.count(opt.number)
+            else:
+                votes = 0
+            opts.append({
+                'option': opt.option,
+                'number': opt.number,
+                'votes': votes
+            })
+
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
+
+        self.postproc = postp
+        self.save()
+
+    def do_postproc_points_options(self):
+
+            tally = self.tally
+            options = self.question.options.all()
+            votos_unitarios = []
+
+            for voto in tally:
+                voto = str(voto)[:-5]
+                votos = voto.split('63789')
+                for voto in votos: 
+                    votos_unitarios.append(int(voto))
+
+            dicc_opciones_valores = {}
+            for voto in votos_unitarios:
+                indice = votos_unitarios.index(voto)
+                if indice%2==0:
+                    if voto in dicc_opciones_valores:
+                        dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
+                    else:
+                        dicc_opciones_valores[voto]=votos_unitarios[indice+1]
+
+            print(dicc_opciones_valores)       
+            opts = []
+            for opt in options:
+                if opt.number in dicc_opciones_valores:
+                    votes = dicc_opciones_valores[opt.number]
+                else:
+                    votes = 0
+                opts.append({
+                    'option': opt.option,
+                    'number': opt.number,
+                    'votes': votes
+                })
+
+            data = { 'type': 'IDENTITY', 'options': opts }
+            postp = mods.post('postproc', json=data)
+
+            self.postproc = postp
+            self.save()
 
     def __str__(self):
         return self.name
