@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='questionoption',
-            name='pointsGiven',
+            name='points_given',
             field=models.PositiveIntegerField(blank=True, null=True),
         ),
     ]
