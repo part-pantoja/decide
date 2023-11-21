@@ -28,10 +28,12 @@ urlpatterns = [
     path('doc/', schema_view),
     path('gateway/', include('gateway.urls')),
     path('accounts/profile/', GoogleView.as_view(), name='incioGoogle')
-   
+    path('',include('home.urls'))
+
 ]
 
 for module in settings.MODULES:
-    urlpatterns += [
-        path('{}/'.format(module), include('{}.urls'.format(module)))
-    ]
+    if module!="home":
+        urlpatterns += [
+            path('{}/'.format(module), include('{}.urls'.format(module)))
+        ]

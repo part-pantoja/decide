@@ -37,22 +37,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'corsheaders',
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'gateway',
-    
-
-    
     'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
+    'bootstrap5',
+
 
 ]
 
@@ -105,6 +103,8 @@ MODULES = [
     'store',
     'visualizer',
     'voting',
+    'home',
+    'request'
 ]
 
 BASEURL = 'http://localhost:8000'
@@ -215,6 +215,8 @@ if os.path.exists("config.jsonnet"):
     config = json.loads(evaluate_file("config.jsonnet"))
     for k, v in config.items():
         vars()[k] = v
+
+LOGOUT_REDIRECT_URL = '/'
 
 
 INSTALLED_APPS = INSTALLED_APPS + MODULES

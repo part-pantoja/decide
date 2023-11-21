@@ -6,6 +6,10 @@ HOST = "http://localhost:8000"
 USER = "egc2324"
 PASS = "egc2324"
 VOTING = 1
+USER = "decideuser"
+PASS = "2329"
+VOTING = 7
+
 
 
 def create_voters(filename):
