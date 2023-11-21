@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'gateway',
+    
 
     
     'django.contrib.sites',
@@ -90,7 +91,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-SITE_ID = 2
+SITE_ID = 4
 
 LOGIN_DIRECT_URL = "authentication/google"
 
@@ -217,3 +218,12 @@ if os.path.exists("config.jsonnet"):
 
 
 INSTALLED_APPS = INSTALLED_APPS + MODULES
+
+# Configuración correo electronico
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'decideuser@gmail.com'
+EMAIL_HOST_PASSWORD = 'leewpcxpocjygrys'
+EMAIL_USE_TLS = True

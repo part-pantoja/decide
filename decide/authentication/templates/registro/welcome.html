@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido</title>
+</head>
+<body>
+  {% if messages %}
+      <ul class="messages">
+          {% for message in messages %}
+              <div class="alert alert-success" role="alert">
+              <h1><li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li></h1>
+              </div>
+          {% endfor %}
+      </ul>
+  {% endif %}
+
+  <h2>Bienvenido, {{ username }}!</h2>
+  <p>Gracias por registrarte en nuestro sitio.</p>
+
+</body>
+</html>
