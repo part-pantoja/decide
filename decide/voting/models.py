@@ -187,15 +187,16 @@ class Voting(models.Model):
                     votos_unitarios.append(int(voto))
 
             dicc_opciones_valores = {}
+            indice = -1
             for voto in votos_unitarios:
-                indice = votos_unitarios.index(voto)
+                indice += 1
                 if indice%2==0:
                     if voto in dicc_opciones_valores:
                         dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
+
                     else:
                         dicc_opciones_valores[voto]=votos_unitarios[indice+1]
-
-            print(dicc_opciones_valores)       
+                        
             opts = []
             for opt in options:
                 if opt.number in dicc_opciones_valores:
