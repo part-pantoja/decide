@@ -1,9 +1,7 @@
 from django.urls import path
-from .views import VisualizerView, votings
+from .views import VisualizerView
 
-app_name = 'visualizer'
 
 urlpatterns = [
-    path('<int:voting_id>/', VisualizerView.as_view(), name="voting_detail"),
-    path('',votings, name='votings')
+    path('<int:voting_id>/', VisualizerView.as_view()),
 ]

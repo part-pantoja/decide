@@ -1,18 +1,14 @@
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
 from . import views
+
 from .views import GetUserView, LogoutView, RegisterView, WelcomeView, LoginView, GoogleView, EmailLoginView, VerifyEmailView
 from django.views.generic import TemplateView 
-from django.contrib.auth import views as auth_views
 
-
-
-app_name = 'authentication'
 
 urlpatterns = [
     path('login/', obtain_auth_token),
-    #path('logout/', LogoutView.as_view()),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view()),
     path('getuser/', GetUserView.as_view()),
     path('register/', RegisterView.as_view(), name='register'),
     path('bienvenida/<str:username>/', WelcomeView.as_view(), name='bienvenida'),

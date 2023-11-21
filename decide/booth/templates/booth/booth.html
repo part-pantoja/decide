@@ -12,6 +12,27 @@
 
 <div id="app-booth">
     <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <div class="navbar-brand" >Decide</div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item" v-if="!signup">
+                        <button v-on:click="decideLogout" class="btn btn-secondary">{% trans "Logout" %}</button>
+                    </li>
+                    <li class="nav-item" v-if="signup">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#registerModal">
+                            Login
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <symbol id="check-circle-fill" viewBox="0 0 16 16">
