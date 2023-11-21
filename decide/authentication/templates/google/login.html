@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django google Sign In</title>
+</head>
+<body>
+    {% load socialaccount %}
+    <h2>Login</h2>
+    <a href="{% url 'login-sin-google' %}">Login</a>
+    <br>
+    <br>
+    <a href="{% provider_login_url 'google' %}?next=/">Login with Google</a>
+    <a href="{% provider_login_url 'github' %}?next=/">Login with GitHub</a>
+feature/gitHubLogin-part-pantoja2
+</body>
+</html>
