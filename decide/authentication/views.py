@@ -17,20 +17,11 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.forms import UsernameField, AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
-from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
-
-
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-
 from django.contrib import messages
-
-
 from .serializers import UserSerializer
 
 UserModel = get_user_model()
@@ -58,15 +49,14 @@ class GoogleView(TemplateView):
 
 class LoginView(APIView):
     def get(self, request):
-        form = AuthenticationForm() 
+        form = AuthenticationForm()
         return render(request, 'registro/loginSinGoogle.html', {'form':form})
-    
+
     def post(self, request, *args, **kwargs):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            
             return redirect('bienvenida', username=user.username)
         else:
             messages.error(request, 'Nombre de usuario o contraseña incorrectos')

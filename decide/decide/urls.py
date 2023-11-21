@@ -17,7 +17,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_swagger.views import get_swagger_view
-from django.views.generic import TemplateView
 from authentication.views import GoogleView
 
 
@@ -28,7 +27,6 @@ urlpatterns = [
     path('doc/', schema_view),
     path('gateway/', include('gateway.urls')),
     path('accounts/profile/', GoogleView.as_view(), name='incioGoogle')
-   
 ]
 
 for module in settings.MODULES:

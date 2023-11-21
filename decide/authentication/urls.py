@@ -1,9 +1,7 @@
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
-from . import views
-
 from .views import GetUserView, LogoutView, RegisterView, WelcomeView, LoginView, GoogleView, EmailLoginView, VerifyEmailView
-from django.views.generic import TemplateView 
+from django.views.generic import TemplateView
 
 
 urlpatterns = [
