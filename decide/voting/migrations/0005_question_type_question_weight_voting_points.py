@@ -13,9 +13,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='question',
             name='type',
-            field=models.CharField(choices=[('single_choice', 'Single Choice'), 
-                                            ('multiple_choice', 'Multiple Choice'), 
-                                            ('points_options', 'Points Options')], 
+            field=models.CharField(choices=[('single_choice', 'Single Choice'),
+                                            ('multiple_choice', 'Multiple Choice'),
+                                            ('points_options', 'Points Options')],
                                             default='single_choice', max_length=20),
         ),
         migrations.AddField(

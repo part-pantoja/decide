@@ -5,7 +5,6 @@ from django.dispatch import receiver
 
 from base import mods
 from base.models import Auth, Key
-import re
 
 class Question(models.Model):
 
@@ -104,7 +103,7 @@ class Voting(models.Model):
             pass
 
         # then, we can decrypt that
-        data = {"msgs": response.json()} 
+        data = {"msgs": response.json()}
         response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
             response=True)
 
@@ -183,7 +182,7 @@ class Voting(models.Model):
             for voto in tally:
                 voto = str(voto)[:-5]
                 votos = voto.split('63789')
-                for voto in votos: 
+                for voto in votos:
                     votos_unitarios.append(int(voto))
 
             dicc_opciones_valores = {}
@@ -193,7 +192,6 @@ class Voting(models.Model):
                 if indice%2==0:
                     if voto in dicc_opciones_valores:
                         dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
-
                     else:
                         dicc_opciones_valores[voto]=votos_unitarios[indice+1]
                         
@@ -216,4 +214,4 @@ class Voting(models.Model):
             self.save()
 
     def __str__(self):
-        return self.name
+        return self.names
