@@ -43,13 +43,11 @@ def booth_home(request):
                 for v in voting:
                     if not v['end_date']:
                         votos.append(v)
-
         elif filtro == 'sin_fechas':
             for voting in user_votings:
                 for v in voting:
                     if not v['end_date'] and not v['start_date']:
-                        votos.append(v)
-                        print(v)     
+                        votos.append(v)   
         else:
             for voting in user_votings:
                 for v in voting:
@@ -66,7 +64,6 @@ def votaciones_del_usuario(request):
         return False
     
     censos_lista = list(Census.objects.filter(voter_id=usuario).values())
-
     voting_ids = []
     for censo in censos_lista:
         voting_ids.append(censo.get("voting_id"))
