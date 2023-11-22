@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Página de Inicio{% endblock %}
+
+{% block content %}
+    <h1>Votaciones:</h1>
+    {% for voting in votings %}
+
+    <h2>
+        <a href="{% url 'visualizer:voting_detail' voting.id %}">
+        
+        {{voting.id}} : {{voting.name}}
+        </a>
+    </h2>
+    <h5> <a href="{% url 'booth:booth_detail' voting.id %}">Votar</a>
+    </h5>
+    <br>
+    <h5> <a href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
+    </h5>
+    <br>
+
+    {% endfor %}
+
+{% endblock %}
