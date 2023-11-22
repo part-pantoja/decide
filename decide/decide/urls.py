@@ -17,6 +17,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_swagger.views import get_swagger_view
+from authentication.views import GoogleView
 
 
 schema_view = get_swagger_view(title='Decide API')
@@ -25,7 +26,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('doc/', schema_view),
     path('gateway/', include('gateway.urls')),
-    path('',include('home.urls'))
+    path('',include('home.urls')),
+    path('accounts/profile/', GoogleView.as_view(), name='incioGoogle')
 ]
 
 for module in settings.MODULES:
