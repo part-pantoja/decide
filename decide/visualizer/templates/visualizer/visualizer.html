@@ -25,7 +25,7 @@
             <div v-else>
                 <h2 class="heading">Resultados:</h2>
 
-                <div v-if="voting.question.type === 'single_choice'">
+                <div v-if="voting.question.type === 'single_choice' || voting.question.type === 'yesno_response'">
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
