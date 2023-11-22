@@ -1,15 +1,31 @@
 import django_filters.rest_framework
 from django.conf import settings
+from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
+from django.shortcuts import render, redirect
 
 from .models import Question, QuestionOption, Voting
 from .serializers import SimpleVotingSerializer, VotingSerializer
 from base.perms import UserIsStaff
 from base.models import Auth
+from .forms import VotingForm
 
+@user_passes_test(lambda u: u.is_staff)
+def create_voting(request):
+    if request.method == 'POST':
+        form = VotingForm(request.POST)
+        if form.is_valid():
+            voting = form.save(commit=False)
+            voting.save()
+            form.save_m2m() 
+            return redirect("voting:create_voting")
+    else:
+        form = VotingForm()
+        
+    return render(request, "voting/create_voting.html", {"form": form})
 
 class VotingView(generics.ListCreateAPIView):
     queryset = Voting.objects.all()
@@ -49,9 +65,6 @@ class VotingView(generics.ListCreateAPIView):
         auth.save()
         voting.auths.add(auth)
         return Response({}, status=status.HTTP_201_CREATED)
-
-        
-
 
 class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
     queryset = Voting.objects.all()
@@ -103,3 +116,4 @@ class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
             msg = 'Action not found, try with start, stop or tally'
             st = status.HTTP_400_BAD_REQUEST
         return Response(msg, status=st)
+
