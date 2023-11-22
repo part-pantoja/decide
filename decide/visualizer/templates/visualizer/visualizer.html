@@ -161,25 +161,58 @@
                             </tr>
                         </tbody>
                     </table>
-                    <table class="table table-bordered table-striped">
+                </div>
+                <div v-if="voting.question.type === 'multiple_choice'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>Media de las respuestas</th>
-                                <th>Mediana de las respuestas</th>
-                                <th>Varianza de las respuestas</th>
-                                <th>Desviación típica de las respuestas</th>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>[[voting.postproc[0].media]]</td>
-                                <td>[[voting.postproc[0].median]]</td>
-                                <td>[[voting.postproc[0].variance]]</td>
-                                <td>[[voting.postproc[0].standard_deviation]]</td>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
                             </tr>
                         </tbody>
                     </table>
-                </form>
+
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
+                </div>
+                <div v-if="voting.question.type === 'points_options'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
+
+                </div>
+                
+
             </div>
         </div>
     </div>
@@ -190,22 +223,55 @@
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        var voting = {{voting|safe}};
-        const { createApp } = Vue
-        createApp({
-            delimiters: ['[[', ']]'],
-            data() {
-                return {
-                    voting: voting
+        document.addEventListener('DOMContentLoaded', function () {
+            var voting = {{ voting|safe }};
+            const { createApp } = Vue;
+
+            createApp({
+                delimiters: ['[[', ']]'],
+                data() {
+                    return {
+                        voting: voting
+                    };
+                },
+                mounted() {
+                    this.createChart();
+                },
+                methods: {
+                    createChart() {
+                        const ctx = document.getElementById('votingChart').getContext('2d');
+                        const chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: this.voting.postproc.map(opt => opt.option),
+                                datasets: [{
+                                    label: 'Votos',
+                                    data: this.voting.postproc.map(opt => opt.votes),
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true
+                                        }
+                                    }]
+                                }
+                            }
+                        });
+                    }
                 }
-            }
-        }).mount('#app-visualizer')
-
-
-        
-
+            }).mount('#app-visualizer');
+        });
     </script>
 </body>
-{% endblock %}
+{% endblock %}
