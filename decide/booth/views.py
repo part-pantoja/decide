@@ -47,7 +47,7 @@ def booth_home(request):
             for voting in user_votings:
                 for v in voting:
                     if not v['end_date'] and not v['start_date']:
-                        votos.append(v)   
+                        votos.append(v)
         else:
             for voting in user_votings:
                 for v in voting:
