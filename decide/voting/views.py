@@ -20,7 +20,7 @@ def create_voting(request):
         if form.is_valid():
             voting = form.save(commit=False)
             voting.save()
-            form.save_m2m() 
+            form.save_m2m()
             return redirect("voting:create_voting")
     else:
         form = VotingForm()

@@ -1,11 +1,10 @@
 from django import forms
-from django.forms import DateInput
-from .models import *
+from .models import Question, Voting
 
-class VotingForm(forms.ModelForm):    
+class VotingForm(forms.ModelForm):
     name = forms.CharField(max_length=100)
     desc = forms.CharField(max_length=50)
-    question = forms.ModelChoiceField(queryset=Question.objects.all())  # Campo para las preguntas existentes
+    question = forms.ModelChoiceField(queryset=Question.objects.all())
 
     class Meta:
         model = Voting
