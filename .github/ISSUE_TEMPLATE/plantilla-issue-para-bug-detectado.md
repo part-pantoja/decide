@@ -1,5 +1,5 @@
 ---
-name: Bug Detectado
+name: Plantilla Issue para Bug Detectado
 about: Crea una descripción del Bug y como replicarlo
 title: 'Bug Detectado: "Título"'
 labels: bug
