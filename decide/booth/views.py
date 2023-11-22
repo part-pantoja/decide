@@ -31,13 +31,12 @@ class BoothView(TemplateView):
         context['KEYBITS'] = settings.KEYBITS
 
         return context
-    
 
 def booth_home(request):
     user_votings = list(votaciones_del_usuario(request)) if votaciones_del_usuario(request) else False
     votos = []
 
-    if user_votings != False:
+    if user_votings:
         filtro = request.GET.get('filtro', None)
         if filtro == 'sin_fecha_fin' or None:
             for voting in user_votings:
@@ -64,7 +63,7 @@ def booth_home(request):
 
 def votaciones_del_usuario(request):
     usuario = request.user.id
-    if usuario == None:
+    if usuario is None:
         return False
     
     censos_lista = list(Census.objects.filter(voter_id=usuario).values())
@@ -74,7 +73,7 @@ def votaciones_del_usuario(request):
         voting_ids.append(censo.get("voting_id"))
 
     votings_list = []
-    for id in voting_ids:
-        votings_list.append((Voting.objects.filter(id=id).values()))
+    for voting_id in voting_ids:
+        votings_list.append((Voting.objects.filter(id=voting_id).values()))
 
     return votings_list
