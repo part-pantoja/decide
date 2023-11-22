@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Votaciones</h1>
 <h3>A continuación se muestran todas las votaciones disponibles.
-<form method="get" action="{% url 'booth_home' %}">
+<form method="get" action="{% url 'booth:booth_home' %}">
     <button type="submit" name="filtro" class="btn btn-primary" value="sin_fecha_fin">Disponibles</button>
     <button type="submit" name="filtro" class="btn btn-primary" value="todas">Todas las Votaciones</button>
     <button type="submit" name="filtro" class="btn btn-primary" value="sin_fechas">No iniciadas</button>
@@ -16,7 +16,7 @@
     {% if voting.end_date is None %}
         <div>
             <h2>{{ voting.id }} - {{ voting.name }}</h2>
-            <h4><a href="{% url 'booth_detail' voting.id %}">Votar</a></h4>    
+            <h4><a href="{% url 'booth:booth_detail' voting.id %}">Votar</a></h4>    
         <div>
     {% else %}
         <div>

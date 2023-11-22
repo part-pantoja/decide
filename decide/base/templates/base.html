@@ -21,6 +21,9 @@
         <div class="navbar-nav ml-auto">
             <a class="nav-item nav-link btn btn-secondary" href="{% url 'visualizer:votings' %}">Votings</a>
         </div>
+        <div class="navbar-nav ml-auto">
+            <a class="nav-item nav-link btn btn-secondary" href="{% url 'booth:booth_home' %}">Booth</a>
+        </div>
 
         {% if user.is_authenticated and user.is_staff %}
         <div class="navbar-nav ml-auto">
@@ -30,10 +33,10 @@
 
         <div class="navbar-nav ml-auto">
             {% if user.is_authenticated %}
-                <a class="nav-item nav-link btn btn-secondary" href="{% url 'authentication:logout' %}">Logout</a>
+                <a class="nav-item nav-link btn btn-secondary" href="{% url 'logout' %}">Logout</a>
             {% else %}
-                <a class="nav-item nav-link btn btn-secondary" href="{% url 'home:index' %}">Sign In</a>
-                <a class="nav-item nav-link btn btn-secondary" href="{% url 'home:index' %}">Sign Up</a>
+                <a class="nav-item nav-link btn btn-secondary" href="{% url 'login-sin-google' %}">Sign In</a>
+                <a class="nav-item nav-link btn btn-secondary" href="{% url 'register' %}">Sign Up</a>
             {% endif %}
         </div>
 
