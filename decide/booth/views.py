@@ -62,7 +62,6 @@ def votaciones_del_usuario(request):
     usuario = request.user.id
     if usuario is None:
         return False
-    
     censos_lista = list(Census.objects.filter(voter_id=usuario).values())
     voting_ids = []
     for censo in censos_lista:
