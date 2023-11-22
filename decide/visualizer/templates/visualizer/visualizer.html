@@ -62,28 +62,51 @@
                 </div>
                 <div v-if="voting.question.type === 'multiple_choice'">
                     <!-- Tabla de resultados -->
-                <table id="votingTable" class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Opción</th>
-                            <th>Puntuación</th>
-                            <th>Votos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="opt in voting.postproc" :key="opt.number">
-                            <th>[[opt.option]]</th>
-                            <td>[[opt.postproc]]</td>
-                            <td class="text-muted">[[opt.votes]]</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                <!-- Gráfico de resultados -->
-                <div class="chart-container" style="max-width: 1400px; margin: auto;">
-                    <canvas id="votingChart"></canvas>
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
                 </div>
+                <div v-if="voting.question.type === 'points_options'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
 
                 </div>
                 
