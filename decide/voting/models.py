@@ -5,17 +5,19 @@ from django.dispatch import receiver
 
 from base import mods
 from base.models import Auth, Key
-
+import math
 
 class Question(models.Model):
-    
+
     class TypeChoices(models.TextChoices):
         SINGLE_CHOICE = 'single_choice', 'Single Choice'
         MULTIPLE_CHOICE = 'multiple_choice', 'Multiple Choice'
+        POINTS_OPTIONS = 'points_options', 'Points Options'
         OPEN_RESPONSE = 'open_response', 'Open Response'
         YESNO_RESPONSE = 'yesno_response', 'YesNo Response'
 
     desc = models.TextField()
+    weight = models.PositiveIntegerField(blank=True, null=True)
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
 
     def __str__(self):
@@ -26,6 +28,8 @@ class QuestionOption(models.Model):
     question = models.ForeignKey(Question, related_name='options', on_delete=models.CASCADE)
     number = models.PositiveIntegerField(blank=True, null=True)
     option = models.TextField()
+    points_given = models.PositiveIntegerField(blank=True, null=True)
+
 
     def save(self):
         if not self.number:
@@ -104,7 +108,7 @@ class Voting(models.Model):
         # then, we can decrypt that
         data = {"msgs": response.json()}
         response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
-                response=True)
+            response=True)
 
         if response.status_code != 200:
             # TODO: manage error
@@ -113,7 +117,12 @@ class Voting(models.Model):
         self.tally = response.json()
         self.save()
 
-        self.do_postproc()
+        if self.question.type == 'multiple_choice':
+            self.do_postproc_multiple_choice()
+        elif self.question.type == 'points_options':
+            self.do_postproc_points_options()
+        else:
+            self.do_postproc()
 
     '''
     def do_postproc(self):
@@ -147,17 +156,56 @@ class Voting(models.Model):
         if self.question.type == 'open_response':
             # Si es una pregunta de respuesta abierta, agrupa las respuestas
             response_counts = {}
+            list_votes=[]
             for vote in tally:
+                list_votes.append(vote)
                 if vote is not None:
                     response_counts[vote] = response_counts.get(vote, 0) + 1
+
+            sorted_votes = sorted(list_votes)
+
+            value = 0
+            num_votes = 0
+
+            #Cálculo de la media
+            for vote, count in response_counts.items():
+                value += vote * count
+                num_votes += count
+            
+            media = value/num_votes
+
+            # Calcular la varianza
+            variance = sum((vote - media) ** 2 * count for vote, count in response_counts.items()) / num_votes
+
+            # Calcular la desviación estándar (raíz cuadrada de la varianza)
+            standard_deviation = math.sqrt(variance)
+
+            median_index = len(sorted_votes) // 2
+
+            if len(sorted_votes) % 2 == 1:
+                # Si la cantidad de votos es impar
+                median = sorted_votes[median_index]
+            else:
+                # Si la cantidad de votos es par
+                median = (sorted_votes[median_index - 1] + sorted_votes[median_index]) / 2
 
             for vote, count in response_counts.items():
                 opts.append({
                     'option': vote,
-                    'votes': count
+                    'votes': count,
+                    'media': media,
+                    'median': median,
+                    'standard_deviation': standard_deviation,
+                    'variance': variance,
                 })
         else:
             # Para otros tipos de pregunta, realiza el recuento normal
+            total = 0
+            for opt in options:
+                if isinstance(tally, list):
+                    votes = tally.count(opt.number)
+                    total += votes
+
             for opt in options:
                 if isinstance(tally, list):
                     votes = tally.count(opt.number)
@@ -166,15 +214,85 @@ class Voting(models.Model):
                 opts.append({
                     'option': opt.option,
                     'number': opt.number,
-                    'votes': votes
+                    'votes': votes,
+                    'percentage': (votes/total)*100
                 })
 
-        data = {'type': 'IDENTITY', 'options': opts}
+        data = {'type': 'IDENTITY', 'options': opts, 'media': media}
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
         self.save()
 
+
+    def do_postproc_multiple_choice(self):
+
+        tally = self.tally
+        options = self.question.options.all()
+        votos_unitarios = []
+
+        for voto in tally:
+            voto = str(voto)
+            votos = voto.split('63789')
+            for voto in votos:
+                votos_unitarios.append(int(voto))
+
+        opts = []
+        for opt in options:
+            if isinstance(votos_unitarios, list):
+                votes = votos_unitarios.count(opt.number)
+            else:
+                votes = 0
+            opts.append({
+                'option': opt.option,
+                'number': opt.number,
+                'votes': votes
+            })
+
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
+
+        self.postproc = postp
+        self.save()
+
+    def do_postproc_points_options(self):
+        tally = self.tally
+        options = self.question.options.all()
+        votos_unitarios = []
+
+        for voto in tally:
+            voto = str(voto)[:-5]
+            votos = voto.split('63789')
+            for voto in votos:
+                votos_unitarios.append(int(voto))
+
+        dicc_opciones_valores = {}
+        indice = -1
+        for voto in votos_unitarios:
+            indice += 1
+            if indice%2==0:
+                if voto in dicc_opciones_valores:
+                    dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
+                else:
+                    dicc_opciones_valores[voto]=votos_unitarios[indice+1]
+                    
+        opts = []
+        for opt in options:
+            if opt.number in dicc_opciones_valores:
+                votes = dicc_opciones_valores[opt.number]
+            else:
+                votes = 0
+            opts.append({
+                'option': opt.option,
+                'number': opt.number,
+                'votes': votes
+            })
+
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
+
+        self.postproc = postp
+        self.save()
 
     def __str__(self):
         return self.name
