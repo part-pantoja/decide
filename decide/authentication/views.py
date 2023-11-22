@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib import messages
 from .serializers import UserSerializer
+from django.contrib.auth import logout
 
 UserModel = get_user_model()
 
@@ -272,4 +273,6 @@ class UserCreationForm2(forms.ModelForm):
             user.save()
         return user
 
-
+def logout_app(request):
+    logout(request)
+    return redirect("home:index")
