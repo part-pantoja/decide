@@ -11,7 +11,8 @@ MODULES = [
     'store',
     'visualizer',
     'voting',
-    'home'
+    'home',
+    'request'
 ]
 
 BASEURL = 'http://localhost:8000'
@@ -26,6 +27,7 @@ APIS = {
     'store': BASEURL,
     'visualizer': BASEURL,
     'voting': BASEURL,
+    'request': BASEURL,
 }
 
 

@@ -21,7 +21,7 @@ def create_voting(request):
             voting = form.save(commit=False)
             voting.save()
             form.save_m2m()
-            return redirect("voting:create_voting")
+            return redirect("visualizer:votings")
     else:
         form = VotingForm()
         
