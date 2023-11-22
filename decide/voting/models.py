@@ -192,7 +192,7 @@ class Voting(models.Model):
         for voto in tally:
             voto = str(voto)
             votos = voto.split('63789')
-            for voto in votos: 
+            for voto in votos:
                 votos_unitarios.append(int(voto))
 
         opts = []
@@ -214,44 +214,43 @@ class Voting(models.Model):
         self.save()
 
     def do_postproc_points_options(self):
+        tally = self.tally
+        options = self.question.options.all()
+        votos_unitarios = []
 
-            tally = self.tally
-            options = self.question.options.all()
-            votos_unitarios = []
+        for voto in tally:
+            voto = str(voto)[:-5]
+            votos = voto.split('63789')
+            for voto in votos:
+                votos_unitarios.append(int(voto))
 
-            for voto in tally:
-                voto = str(voto)[:-5]
-                votos = voto.split('63789')
-                for voto in votos:
-                    votos_unitarios.append(int(voto))
-
-            dicc_opciones_valores = {}
-            indice = -1
-            for voto in votos_unitarios:
-                indice += 1
-                if indice%2==0:
-                    if voto in dicc_opciones_valores:
-                        dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
-                    else:
-                        dicc_opciones_valores[voto]=votos_unitarios[indice+1]
-                        
-            opts = []
-            for opt in options:
-                if opt.number in dicc_opciones_valores:
-                    votes = dicc_opciones_valores[opt.number]
+        dicc_opciones_valores = {}
+        indice = -1
+        for voto in votos_unitarios:
+            indice += 1
+            if indice%2==0:
+                if voto in dicc_opciones_valores:
+                    dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
                 else:
-                    votes = 0
-                opts.append({
-                    'option': opt.option,
-                    'number': opt.number,
-                    'votes': votes
-                })
+                    dicc_opciones_valores[voto]=votos_unitarios[indice+1]
+                    
+        opts = []
+        for opt in options:
+            if opt.number in dicc_opciones_valores:
+                votes = dicc_opciones_valores[opt.number]
+            else:
+                votes = 0
+            opts.append({
+                'option': opt.option,
+                'number': opt.number,
+                'votes': votes
+            })
 
-            data = { 'type': 'IDENTITY', 'options': opts }
-            postp = mods.post('postproc', json=data)
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
 
-            self.postproc = postp
-            self.save()
+        self.postproc = postp
+        self.save()
 
     def __str__(self):
         return self.names
