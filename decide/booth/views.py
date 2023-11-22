@@ -34,15 +34,39 @@ class BoothView(TemplateView):
     
 
 def booth_home(request):
-    user_votings = list(votaciones_del_usuario(request))
-    
+    user_votings = list(votaciones_del_usuario(request)) if votaciones_del_usuario(request) else False
+    votos = []
+
+    if user_votings != False:
+        filtro = request.GET.get('filtro', None)
+        if filtro == 'sin_fecha_fin' or None:
+            for voting in user_votings:
+                for v in voting:
+                    if not v['end_date']:
+                        votos.append(v)
+
+        elif filtro == 'sin_fechas':
+            for voting in user_votings:
+                for v in voting:
+                    if not v['end_date'] and not v['start_date']:
+                        votos.append(v)
+                        print(v)
+            
+        else:
+            for voting in user_votings:
+                for v in voting:
+                    votos.append(v)
+
     return render(request, 'booth/booth_home.html', {
-        'votings': user_votings
+        'votings': votos
     })
 
 
 def votaciones_del_usuario(request):
     usuario = request.user.id
+    if usuario == None:
+        return False
+    
     censos_lista = list(Census.objects.filter(voter_id=usuario).values())
 
     voting_ids = []
@@ -51,6 +75,6 @@ def votaciones_del_usuario(request):
 
     votings_list = []
     for id in voting_ids:
-        votings_list.append(list(Voting.objects.filter(id=id).values()))
+        votings_list.append((Voting.objects.filter(id=id).values()))
 
     return votings_list
