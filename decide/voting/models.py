@@ -14,6 +14,7 @@ class Question(models.Model):
         MULTIPLE_CHOICE = 'multiple_choice', 'Multiple Choice'
         POINTS_OPTIONS = 'points_options', 'Points Options'
         OPEN_RESPONSE = 'open_response', 'Open Response'
+        YESNO_RESPONSE = 'yesno_response', 'YesNo Response'
 
     desc = models.TextField()
     weight = models.PositiveIntegerField(blank=True, null=True)

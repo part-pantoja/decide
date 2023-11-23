@@ -131,6 +131,9 @@
                         </tbody>
                     </table>
 
+
+                <div v-if="voting.question.type === 'single_choice' || voting.question.type === 'yesno_response'">
+
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
