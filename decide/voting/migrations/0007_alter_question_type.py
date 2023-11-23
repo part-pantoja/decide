@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='question',
             name='type',
-            field=models.CharField(choices=[('single_choice', 'Single Choice'), ('multiple_choice', 'Multiple Choice'), ('open_response', 'Open Response'), ('yesno_response', 'YesNo Response')], default='single_choice', max_length=20),
+            field=models.CharField(choices=[('single_choice', 'Single Choice'), ('multiple_choice', 'Multiple Choice'),
+             ('open_response', 'Open Response'), ('yesno_response', 'YesNo Response')], default='single_choice', max_length=20),
         ),
     ]
