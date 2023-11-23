@@ -18,5 +18,5 @@ class VisualizerView(TemplateView):
             context['voting'] = json.dumps(r[0])
         except:
             raise Http404
-
+        print("Votacion", r)
         return context

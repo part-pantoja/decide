@@ -25,8 +25,8 @@
             <div v-else>
                 <h2 class="heading">Resultados:</h2>
         
-                <div v-for="question in voting.postproc" :key="question.question">
-                    <h3>{{ question.question }}</h3>
+                <div v-for="question in voting.questions" :key="question.desc">
+                    <h3>{{ question.desc }}</h3>
                 
                     <table class="table table-bordered table-striped">
                         <thead>
@@ -37,9 +37,16 @@
                         </thead>
                         <tbody>
                             <tr v-for="opt in question.options" :key="opt.number">
-                                <th>[[opt.option]]</th>
-                                <td class="text-muted">[[opt.votes]]</td>
+                                <td>[[ opt.option ]]</td>
+                                <td>
+                                    <template v-for="list in voting.postproc" :key="list.option">
+                                        <template v-if="list.number === opt.number && list.question_id === question.id">
+                                            [[list.votes]]
+                                        </template>
+                                    </template>
+                                </td>
                             </tr>
+                            
                         </tbody>
                     </table>
                 </div>

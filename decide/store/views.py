@@ -24,37 +24,34 @@ class StoreView(generics.ListAPIView):
 
     def post(self, request):
         """
-        * voting: id
-        * voter: id
-        * vote: { "a": int, "b": int, "question_id": int }
+         * voting: id
+         * voter: id
+         * vote: { "a": int, "b": int }
         """
 
         vid = request.data.get('voting')
         voting = mods.get('voting', params={'id': vid})
-
         if not voting or not isinstance(voting, list):
+            # print("por aqui 35")
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
-
         start_date = voting[0].get('start_date', None)
+        # print ("Start date: "+  start_date)
         end_date = voting[0].get('end_date', None)
-
+        #print ("End date: ", end_date)
         not_started = not start_date or timezone.now() < parse_datetime(start_date)
+        #print (not_started)
         is_closed = end_date and parse_datetime(end_date) < timezone.now()
-
         if not_started or is_closed:
+            #print("por aqui 42")
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
         uid = request.data.get('voter')
-        print("---------------------", uid)
-        votes = request.data.get('votes', [])
-        print("-------------------", votes)
-        
+        vote = request.data.get('vote')
 
-        if not vid or not uid or not votes:
+        if not vid or not uid or not vote:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validación del votante y el censo aquí...
-         # validating voter
+        # validating voter
         if request.auth:
             token = request.auth.key
         else:
@@ -64,47 +61,24 @@ class StoreView(generics.ListAPIView):
         if not voter_id or voter_id != uid:
             # print("por aqui 59")
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
         # the user is in the census
-            perms = mods.get('census/{}'.format(vid), params={'voter_id': uid}, response=True)
-            if perms.status_code == 401:
-                # print("por aqui 65")
-                return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+        perms = mods.get('census/{}'.format(vid), params={'voter_id': uid}, response=True)
+        if perms.status_code == 401:
+            # print("por aqui 65")
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Iterar sobre la lista de votos y guardar cada voto
-        for vote_data in votes:
-            question_id = vote_data.get("questionId")
-            question_instance = Question.objects.get(id=question_id)
-            try:
-                question_instance = Question.objects.get(id=question_id)
-            except Question.DoesNotExist:
-                # Manejar el caso en que la pregunta no existe
-                return Response({"error": "Question does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-            print(question_instance)
-            a = vote_data.get("vote", {}).get("a")
-            print(a)
-            b = vote_data.get("vote", {}).get("b")
-            print(b)
+        a = vote.get("a")
+        b = vote.get("b")
 
-            defs = {"a": a, "b": b, "question_id": question_id}
-            v, _ = Vote.objects.get_or_create(voting_id=vid, voter_id=uid, defaults=defs)
-            v.a = a
-            v.b = b
-            v.question_id = question_id
-            print(v)
+        defs = { "a": a, "b": b }
+        v, _ = Vote.objects.get_or_create(voting_id=vid, voter_id=uid,
+                                          defaults=defs)
+        v.a = a
+        v.b = b
 
-            v.save()
+        v.save()
 
-        # a = vote.get("a")
-        # b = vote.get("b")
-
-        # defs = {"a": a, "b": b, "question_id": question_id}
-        # v, _ = Vote.objects.get_or_create(voting_id=vid, voter_id=uid, defaults=defs)
-        # v.a = a
-        # v.b = b
-        # v.question_id = question_id  # Asigna el question_id
-
-        # v.save()
-
-        return Response({})
+        return  Response({})
 
         
