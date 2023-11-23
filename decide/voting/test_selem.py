@@ -17,7 +17,7 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 	
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()            
@@ -32,8 +32,8 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.driver.get("http://0.0.0.0:8080/admin/login/?next=/admin/")
         self.driver.set_window_size(1850, 1016)
         self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwertys")
         self.driver.find_element(By.CSS_SELECTOR, ".submit-row > input").click()
         self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
         self.driver.find_element(By.ID, "id_desc").send_keys("pregunta con voto en blanco")
