@@ -30,7 +30,7 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.base.tearDown()
     
     def test_preguntaconvotoenblanco(self):
-        self.driver.get("http://0.0.0.0:8080/admin/login/?next=/admin/")
+        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.driver.set_window_size(1850, 1016)
         self.driver.find_element(By.ID, "id_username").click()
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
