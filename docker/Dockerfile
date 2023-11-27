@@ -1,23 +1,26 @@
-from python:3.10-alpine
+# Use the python:3.10-alpine image as the base image
+FROM python:3.10-alpine
 
-RUN apk add --no-cache git postgresql-dev gcc libc-dev
-RUN apk add --no-cache gcc g++ make libffi-dev python3-dev build-base
+# Install system dependencies
+RUN apk add --no-cache git postgresql-dev gcc libc-dev chromium chromium-chromedriver libffi-dev python3-dev build-base
 
-RUN pip install gunicorn
-RUN pip install psycopg2
-RUN pip install ipdb
-RUN pip install ipython
+# Install Python dependencies
+RUN pip install gunicorn psycopg2 ipdb ipython
 
+# Set the working directory to /app
 WORKDIR /app
 
-RUN git clone https://github.com/part-pantoja/decide.git .
+# Clone the repository
+RUN git clone -b bugfix/docker-compose-se-queda-atascado-al-lanzarse https://github.com/part-pantoja/decide.git .
+
+# Install Python requirements
 RUN pip install -r requirements.txt
 
+# Set the working directory to /app/decide
 WORKDIR /app/decide
 
-# local settings.py
+# Copy the local settings.py
 ADD docker-settings.py /app/decide/local_settings.py
 
-RUN ./manage.py runserver
-
-#CMD ["gunicorn", "-w 5", "decide.wsgi", "--timeout=500", "-b 0.0.0.0:5000"]
+# Command to run the application using gunicorn
+CMD ["gunicorn", "-w", "5", "decide.wsgi", "--timeout=500", "-b", "0.0.0.0:5000"]
