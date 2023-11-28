@@ -1,14 +1,9 @@
-from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from base.tests import BaseTestCase
-import time
 
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from django.contrib.auth.models import User
 
@@ -16,14 +11,13 @@ class AdminTestCase(StaticLiveServerTestCase):
     def setUp(self):
         self.base = BaseTestCase()
         self.base.setUp()
-	
         options = webdriver.ChromeOptions()
         options.headless = True
         self.driver = webdriver.Chrome(options=options)
-        User.objects.filter(username='admin1') or User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
+        User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         super().setUp()            
-            
-    def tearDown(self):           
+     
+    def tearDown(self):
         super().tearDown()
         self.driver.quit()
 
