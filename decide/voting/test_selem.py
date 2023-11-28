@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
+from django.contrib.auth.models import User
 
 class AdminTestCase(StaticLiveServerTestCase):
     def setUp(self):
@@ -19,7 +20,7 @@ class AdminTestCase(StaticLiveServerTestCase):
         options = webdriver.ChromeOptions()
         options.headless = True
         self.driver = webdriver.Chrome(options=options)
-
+        User.objects.filter(username='admin1') or User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         super().setUp()            
             
     def tearDown(self):           
@@ -29,11 +30,11 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.base.tearDown()
     
     def test_preguntaconvotoenblanco(self):
-        self.driver.get("http://0.0.0.0:8080/admin/login/?next=/admin/")
+        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.driver.set_window_size(1850, 1016)
         self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("admin")
-        self.driver.find_element(By.ID, "id_password").send_keys("qwertys")
+        self.driver.find_element(By.ID, "id_username").send_keys("admin1")
+        self.driver.find_element(By.ID, "id_password").send_keys("admin")
         self.driver.find_element(By.CSS_SELECTOR, ".submit-row > input").click()
         self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
         self.driver.find_element(By.ID, "id_desc").send_keys("pregunta con voto en blanco")
