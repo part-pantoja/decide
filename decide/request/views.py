@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from voting.models import Voting
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from request.models import Request, RequestStatus
 from census.models import Census
 
 def es_administrador(user):
     return user.is_authenticated and user.is_staff
 
-
+@login_required(login_url='login-sin-google')
 def create_request(request, votacion_id):
     votacion = get_object_or_404(Voting, id=votacion_id)
     user = request.user
@@ -19,7 +19,12 @@ def create_request(request, votacion_id):
         return render(request, 'request/next_page.html', {'message': 'Ya estás en el censo de esta votación.'})
 
     if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).exists():
-        return render(request, 'request/next_page.html', {'message': 'Ya tienes una request para esta votación.'})
+        if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).first().status==RequestStatus.PENDING.value:
+            return render(request, 'request/next_page.html', {'message': 'Ya tienes una request para esta votación.'})
+        
+        if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).first().status==RequestStatus.DECLINED.value:
+            return render(request, 'request/next_page.html', {'message': 'Lo sentimos, tu solicitud ha sido rechazada.'})
+        
 
     Request.objects.create(voting_id=votacion.id, voter_id=user.id, status=RequestStatus.PENDING.value)
 

@@ -200,9 +200,8 @@ class VerifyEmailView(APIView):
 
 class WelcomeView(APIView):
     def get(self, request, username):
-        return render(request, 'registro/welcome.html', {'username': username})
+        return redirect('home:index')
     
-
 
 class UserCreationForm2(forms.ModelForm):
     """
