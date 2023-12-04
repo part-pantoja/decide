@@ -26,7 +26,7 @@ class BaseTestCase(APITestCase):
 
     def login(self, user='admin', password='qwerty'):
         data = {'username': user, 'password': password}
-        response = mods.post('authentication/login', json=data, response=True)
+        response = mods.post('authentication/login-page', json=data, response=True)
         self.assertEqual(response.status_code, 200)
         self.token = response.json().get('token')
         self.assertTrue(self.token)

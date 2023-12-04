@@ -29,6 +29,37 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
+        
+    '''
+    def test_simpleCorrectLoginNuevoUsername(self):      
+       #Abre la ruta del navegador             
+        self.driver.get(f'{self.live_server_url}/authentication/login-page/')
+       #Busca los elementos y “escribe”
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty",Keys.ENTER)
+
+        
+       #Mensaje de bienvenida
+        mensaje_bienvenida = self.driver.find_element(By.CSS_SELECTOR, 'h2')
+
+        palabra = 'Bienvenido'
+
+        self.assertTrue(palabra in mensaje_bienvenida.text)
+
+    def test_simpleWrongLoginNuevoUsername(self):
+
+        self.driver.get(f'{self.live_server_url}/authentication/login-page/')
+        self.driver.find_element(By.ID,'id_username').send_keys("WRONG")
+        self.driver.find_element(By.ID,'id_password').send_keys("WRONG", Keys.ENTER)       
+        
+
+       #Mensaje de bienvenida
+        mensaje_bienvenida = self.driver.find_element(By.CSS_SELECTOR, 'h2')
+
+        palabra = 'Bienvenido'
+
+        self.assertTrue(palabra not in mensaje_bienvenida.text)
+        time.sleep(5)
     
     def test_simpleCorrectLogin(self):      
        #Abre la ruta del navegador             
@@ -50,3 +81,4 @@ class AdminTestCase(StaticLiveServerTestCase):
        #Si no, aparece este error
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'errornote'))==1)
         time.sleep(5)
+    '''
