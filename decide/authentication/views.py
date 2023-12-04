@@ -47,7 +47,6 @@ class GoogleView(TemplateView):
         return context
 
 
-
 class LoginView(APIView):
     def get(self, request):
         form = AuthenticationForm()
