@@ -123,15 +123,6 @@
             
         </form>
 
-        
-
-        <!-- Formulario de Inicio de Sesión con Google -->
-        <div class="google-login-container">
-            <form method="post" action="{% provider_login_url 'google' %}">
-                {% csrf_token %}
-                <button class="google-login" type="submit">Iniciar Sesión con Google</button>
-            </form>
-        </div>
     </div>
 
     
