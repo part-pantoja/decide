@@ -41,18 +41,17 @@ def manage_request(request):
         if 'aceptar' in request.POST:
             solicitud_id = request.POST.get('aceptar')
             print(solicitud_id)
-            solicitud = Request.objects.get(pk=solicitud_id)  # Corregir aquí
+            solicitud = Request.objects.get(pk=solicitud_id)  
             solicitud.status = RequestStatus.ACCEPTED.value
             solicitud.save()
             Census.objects.create(voting_id=solicitud.voting_id, voter_id=solicitud.voter_id)
 
         elif 'declinar' in request.POST:
             solicitud_id = request.POST.get('declinar')
-            solicitud = Request.objects.get(pk=solicitud_id)  # Corregir aquí
+            solicitud = Request.objects.get(pk=solicitud_id)
             solicitud.status = RequestStatus.DECLINED.value
             solicitud.save()
 
-        # Redirigir a la misma página después de procesar la solicitud
         return redirect('request:manage_request')
 
     return render(request, 'request/manage_request.html', {'requests': requests, 'requests_accepted': requests_accepted, 'requests_declined':requests_declined})
