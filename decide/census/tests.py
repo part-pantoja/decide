@@ -91,6 +91,7 @@ class CensusTest(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
