@@ -82,7 +82,7 @@ class EmailLoginView(APIView):
             else:
                 messages.error(request, 'Correo no encontrado')
                 return render(request, 'registro/loginSinGoogleEmail.html')
-        
+
 
 
 class GetUserView(APIView):
@@ -162,7 +162,7 @@ class RegisterView(APIView):
         form = UserCreationForm2()
         return render(request, 'registro/registry.html', {'form':form})
 
-    
+
 class VerifyEmailView(APIView):
     def verificar_codigo(request, username):
         if request.method == 'GET':
@@ -189,15 +189,11 @@ class VerifyEmailView(APIView):
             else:
                 messages.error(request, 'Usuario no registrado')
                 return render(request, 'registro/verification_code.html')
-            
-
-    
 
 
 class WelcomeView(APIView):
     def get(self, request, username):
         return redirect('home:index')
-    
 
 class UserCreationForm2(forms.ModelForm):
     """
