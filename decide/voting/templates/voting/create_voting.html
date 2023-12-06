@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Crea una Votación</h1>
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                {{ form.desc.label_tag }}
+                {{ form.desc }}
+            </div>
+            <div class="form-group">
+                {{ form.question.label_tag }}
+                {{ form.question }}
+            </div>
+            <div class="form-group">
+                {{ form.auths.label_tag }}
+                {{ form.auths }}
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+    </div>
+    {% endblock %}
+
