@@ -1,9 +1,4 @@
 from rest_framework.response import Response
-from rest_framework.status import (
-        HTTP_201_CREATED,
-        HTTP_400_BAD_REQUEST,
-        HTTP_401_UNAUTHORIZED
-)
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
@@ -61,7 +56,7 @@ class LoginView(APIView):
         else:
             messages.error(request, 'Nombre de usuario o contraseña incorrectos')
             return render(request, 'registro/loginSinGoogle.html', {'form': form})
-        
+   
 
 class EmailLoginView(APIView):
     def login_correo(request):
@@ -131,7 +126,9 @@ class RegisterView(APIView):
             emailCorporativo = settings.EMAIL_HOST_USER
             subject = 'Registro en decide'
             message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
-            message2 = 'Por favor introduce el codigo en la página que le ha redirigido o http://127.0.0.1:8000/authentication/verificar-correo/' + name + '/ para verificar su identidad: ' + token
+            message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
+           'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
+           '/ para verificar su identidad: ' + token
             message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
 
             template = render_to_string('registro/email_template.html', {

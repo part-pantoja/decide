@@ -1,9 +1,7 @@
-from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
 
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
 
 from base import mods
 
@@ -27,7 +25,6 @@ class AuthTestCase(APITestCase):
     def tearDown(self):
         self.client = None
 
-    
     def test_loginNuevoPorUsername(self):
         data = {'username': 'voter1', 'password': '123'}
         response = self.client.post('/authentication/login-page/', data)
@@ -37,7 +34,6 @@ class AuthTestCase(APITestCase):
 
         # Verifica que el usuario está autenticado
         self.assertTrue(response.wsgi_request.user.is_authenticated)
-
 
     def test_loginNuevoPorEmail(self):
         data = {'email': 'admin@admin.com', 'password': 'admin'}
@@ -49,7 +45,6 @@ class AuthTestCase(APITestCase):
         # Verifica que el usuario está autenticado
         self.assertTrue(response.wsgi_request.user.is_authenticated)
     
-
     def test_login_failUsername(self):
         data = {'username': 'admin', 'password': 'admin1'}
         response = self.client.post('/authentication/login-page/', data)
@@ -60,7 +55,6 @@ class AuthTestCase(APITestCase):
         # Verifica que el usuario no está autenticado
         self.assertFalse(response.wsgi_request.user.is_authenticated)
     
-
     def test_login_failEmail(self):
         data = {'username': 'admin1@us.es', 'password': 'admin'}
         response = self.client.post('/authentication/login-page/', data)
@@ -70,7 +64,6 @@ class AuthTestCase(APITestCase):
 
         # Verifica que el usuario no está autenticado
         self.assertFalse(response.wsgi_request.user.is_authenticated)
-
 
     def test_registerNuevo(self):
         data = {'username': 'pruebaTest', 'email': 'decideuser@gmail.com', 'password1': 'decidepass123', 'password2':'decidepass123'}
@@ -82,7 +75,6 @@ class AuthTestCase(APITestCase):
         # Verifica que el nuevo usuario fue creado
         self.assertTrue(User.objects.filter(username='pruebaTest').exists())
 
-      
     def test_registerUsuarioYaExistente(self):
 
         # Verifica que el usuario si esta en la base de datos
@@ -121,8 +113,6 @@ class AuthTestCase(APITestCase):
         # Verifica que el nuevo usuario no fue creado
         self.assertFalse(User.objects.filter(username='UserPruebaTest').exists())
         
-        
-
 '''
     def test_login(self):
         data = {'username': 'voter1', 'password': '123'}
@@ -227,4 +217,4 @@ class AuthTestCase(APITestCase):
             sorted(list(response.json().keys())),
             ['token', 'user_pk']
         )
-    '''
+'''

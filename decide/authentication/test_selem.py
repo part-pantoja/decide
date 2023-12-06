@@ -1,14 +1,6 @@
-from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-
 from base.tests import BaseTestCase
-import time
-
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 
 class AdminTestCase(StaticLiveServerTestCase):
 
@@ -31,7 +23,7 @@ class AdminTestCase(StaticLiveServerTestCase):
 
         self.base.tearDown()
         
-    '''
+'''
     def test_simpleCorrectLoginNuevoUsername(self):      
        #Abre la ruta del navegador             
         self.driver.get(f'{self.live_server_url}/authentication/login-page/')
@@ -82,4 +74,4 @@ class AdminTestCase(StaticLiveServerTestCase):
        #Si no, aparece este error
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'errornote'))==1)
         time.sleep(5)
-    '''
+'''

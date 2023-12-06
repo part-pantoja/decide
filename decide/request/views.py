@@ -21,7 +21,7 @@ def create_request(request, votacion_id):
     if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).exists():
         if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).first().status==RequestStatus.PENDING.value:
             return render(request, 'request/next_page.html', {'message': 'Ya tienes una request para esta votación.'})
-        
+
         if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).first().status==RequestStatus.DECLINED.value:
             return render(request, 'request/next_page.html', {'message': 'Lo sentimos, tu solicitud ha sido rechazada.'})
         
@@ -41,7 +41,7 @@ def manage_request(request):
         if 'aceptar' in request.POST:
             solicitud_id = request.POST.get('aceptar')
             print(solicitud_id)
-            solicitud = Request.objects.get(pk=solicitud_id)  
+            solicitud = Request.objects.get(pk=solicitud_id)
             solicitud.status = RequestStatus.ACCEPTED.value
             solicitud.save()
             Census.objects.create(voting_id=solicitud.voting_id, voter_id=solicitud.voter_id)
@@ -54,4 +54,7 @@ def manage_request(request):
 
         return redirect('request:manage_request')
 
-    return render(request, 'request/manage_request.html', {'requests': requests, 'requests_accepted': requests_accepted, 'requests_declined':requests_declined})
+    return render(request, 'request/manage_request.html',
+                  {'requests': requests,
+                    'requests_accepted': requests_accepted,
+                    'requests_declined':requests_declined})
