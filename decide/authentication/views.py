@@ -56,7 +56,7 @@ class LoginView(APIView):
         else:
             messages.error(request, 'Nombre de usuario o contraseña incorrectos')
             return render(request, 'registro/loginSinGoogle.html', {'form': form})
-   
+
 
 class EmailLoginView(APIView):
     def login_correo(request):

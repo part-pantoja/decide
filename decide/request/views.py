@@ -24,7 +24,7 @@ def create_request(request, votacion_id):
 
         if Request.objects.filter(voter_id=user.id, voting_id=votacion.id).first().status==RequestStatus.DECLINED.value:
             return render(request, 'request/next_page.html', {'message': 'Lo sentimos, tu solicitud ha sido rechazada.'})
-        
+
 
     Request.objects.create(voting_id=votacion.id, voter_id=user.id, status=RequestStatus.PENDING.value)
 
