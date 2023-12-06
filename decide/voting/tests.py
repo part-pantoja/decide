@@ -304,6 +304,7 @@ class LogInSuccessTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -336,6 +337,7 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -383,6 +385,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
