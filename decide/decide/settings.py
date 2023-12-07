@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
+    'bootstrap5',
 
 ]
 
@@ -105,6 +106,7 @@ MODULES = [
     'store',
     'visualizer',
     'voting',
+    'home'
 ]
 
 BASEURL = 'http://localhost:8000'

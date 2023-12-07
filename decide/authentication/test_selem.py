@@ -29,6 +29,7 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
+<<<<<<< HEAD
         
     '''
     def test_simpleCorrectLoginNuevoUsername(self):      
@@ -60,6 +61,8 @@ class AdminTestCase(StaticLiveServerTestCase):
 
         self.assertTrue(palabra not in mensaje_bienvenida.text)
         time.sleep(5)
+=======
+>>>>>>> feature/home-part-pantoja1
     
     def test_simpleCorrectLogin(self):      
        #Abre la ruta del navegador             
@@ -80,5 +83,7 @@ class AdminTestCase(StaticLiveServerTestCase):
 
        #Si no, aparece este error
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'errornote'))==1)
+<<<<<<< HEAD
         time.sleep(5)
     '''
+=======
