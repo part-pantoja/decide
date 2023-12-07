@@ -1,23 +1,24 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+
 from base.tests import BaseTestCase
+
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver import ActionChains
+from django.contrib.auth.models import User
 
 class AdminTestCase(StaticLiveServerTestCase):
-
     def setUp(self):
-        #Crea un usuario admin y otro no admin
         self.base = BaseTestCase()
         self.base.setUp()
-	
-        #Opciones de Chrome
         options = webdriver.ChromeOptions()
-        options.headless = True
         options.add_argument("--no-sandbox")
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
-
+        User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         super().setUp()            
-            
-    def tearDown(self):           
+     
+    def tearDown(self):
         super().tearDown()
         self.driver.quit()
 

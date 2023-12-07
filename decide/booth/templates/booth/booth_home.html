@@ -1,0 +1,30 @@
+{%  extends "base.html" %}
+{% block title %} Votaciones en las que estás censado {% endblock %}
+{% block content %}
+<h1>Votaciones</h1>
+<h3>A continuación se muestran todas las votaciones disponibles.
+<form method="get" action="{% url 'booth:booth_home' %}">
+    <button type="submit" name="filtro" class="btn btn-primary" value="sin_fecha_fin">Disponibles</button>
+    <button type="submit" name="filtro" class="btn btn-primary" value="todas">Todas las Votaciones</button>
+    <button type="submit" name="filtro" class="btn btn-primary" value="sin_fechas">No iniciadas</button>
+</form>
+    
+    {% for voting in votings %}
+
+    
+
+    {% if voting.end_date is None %}
+        <div>
+            <h2>{{ voting.id }} - {{ voting.name }}</h2>
+            <h4><a href="{% url 'booth:booth_detail' voting.id %}">Votar</a></h4>    
+        <div>
+    {% else %}
+        <div>
+            <h2>{{ voting.id }} - {{ voting.name }}</h2>
+            <h4>No puedes votar</h4>    
+        <div>
+
+    {% endif %}
+    
+    {% endfor %}
+{% endblock %}

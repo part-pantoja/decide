@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            width: 300px; 
+            text-align: center;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; 
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #ffffff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .login-link,
+        .google-register-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .login-link a,
+        .google-register {
+            color: #4caf50;
+            text-decoration: none;
+        }
+
+        .login-link a:hover,
+        .google-login-container {
+            text-align: center;
+        }
+
+        .google-login {
+            background-color: #4285f4;
+            color: #ffffff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            display: inline-block;
+        }
+
+        .google-login:hover {
+            background-color: #357ae8;
+        }
+
+        .close-btn {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    {% load socialaccount %}
+
+    <div class="form-container">
+        <h2>Registro de Usuario</h2>
+        <form method="post" action="{% url 'register' %}" id="registrationForm">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+            <button type="submit" onclick="validateRegistration()">Registrarse</button>
+        </form>
+
+        
+
+        <!-- Nuevo apartado -->
+        <div class="login-link">
+            ¿Ya tienes cuenta? <a href="{% url 'login-sin-google' %}">Inicia sesión aquí</a>
+        </div>
+        
+        <br>
+
+    </div>
+
+    <script>
+        function validateRegistration() {
+            var form = document.getElementById('registrationForm');
+            var hasErrors = checkForErrors();
+
+            if (hasErrors) {
+                
+                document.getElementById('errorContainer').style.display = 'block';
+            }
+
+            return false; 
+        }
+
+        function checkForErrors() {
+            var usernameInput = document.getElementById('id_username');
+            var passwordInput = document.getElementById('id_password1');
+            var confirmPasswordInput = document.getElementById('id_password2');
+
+            
+            return usernameInput.value.trim() === '' || passwordInput.value.trim() === '' || confirmPasswordInput.value.trim() === '';
+        }
+
+        function closeErrorContainer() {
+            document.getElementById('errorContainer').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

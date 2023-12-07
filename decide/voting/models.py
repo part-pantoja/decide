@@ -19,6 +19,20 @@ class Question(models.Model):
     desc = models.TextField()
     weight = models.PositiveIntegerField(blank=True, null=True)
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
+    is_blank_vote_allowed = models.BooleanField(default=False)
+
+    def save(self):
+        super().save()
+        is_there_blank_vote = QuestionOption.objects.filter(question=self, option="Blank Vote").exists()
+        if self.is_blank_vote_allowed and not is_there_blank_vote:
+            opt = QuestionOption(question=self, option='Blank Vote', number=1)
+            opt.save()
+        elif not self.is_blank_vote_allowed and is_there_blank_vote:
+            try:
+                opt = QuestionOption.objects.get(question=self, option="Blank Vote")
+                opt.delete()
+            except QuestionOption.DoesNotExist:
+                pass
 
     def __str__(self):
         return self.desc
