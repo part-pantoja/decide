@@ -17,6 +17,10 @@
     <br>
     <h5> <a href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
     </h5>
+    {% if user.is_authenticated and user.is_staff %}
+        <h5> <a href="{% url 'voting:voting_details' voting.id %}">Administrar votación</a>
+        </h5>
+    {% endif %}
     <br>
 
     {% endfor %}

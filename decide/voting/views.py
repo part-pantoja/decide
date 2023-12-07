@@ -1,4 +1,5 @@
 import django_filters.rest_framework
+from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
@@ -6,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from .models import Question, QuestionOption, Voting
 from .serializers import SimpleVotingSerializer, VotingSerializer
@@ -26,6 +28,29 @@ def create_voting(request):
         form = VotingForm()
         
     return render(request, "voting/create_voting.html", {"form": form})
+
+def voting_details(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    return render(request, "voting/voting_details.html", {"voting": voting})
+
+def start_voting(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    voting.create_pubkey()
+    voting.start_date = timezone.now()
+    voting.save()
+    return redirect('voting:voting_details', voting_id=voting_id)
+
+def stop_voting(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    voting.end_date = timezone.now()
+    voting.save()
+    return redirect('voting:voting_details', voting_id=voting_id)
+
+def tally_votes(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id, end_date__lt=timezone.now())
+    token = request.session.get('auth-token', '')
+    voting.tally_votes(token)
+    return redirect('voting:voting_details', voting_id=voting_id)
 
 class VotingView(generics.ListCreateAPIView):
     queryset = Voting.objects.all()
