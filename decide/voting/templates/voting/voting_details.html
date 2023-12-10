@@ -20,7 +20,7 @@
             </tr>
             <tr>
                 <th scope="row">Autenticación:</th>
-                <td>{{ voting.auths.get }}</td> <!-- Asegúrate de obtener los datos correctamente -->
+                <td>{{ voting.auths.get }}</td>
             </tr>
             <tr>
                 <th scope="row">Fecha de inicio:</th>
@@ -47,11 +47,9 @@
                 <td>
                     {% if not voting.start_date %}
                     <a href="{% url 'voting:start_voting' voting.id %}" class="btn btn-primary">Empezar</a>
-                    {% endif %}
-                    {% if not voting.end_date %}
+                    {% elif not voting.end_date %}
                     <a href="{% url 'voting:stop_voting' voting.id %}" class="btn btn-primary">Finalizar</a>
-                    {% endif %}
-                    {% if not voting.tally %}
+                    {% elif not voting.tally %}
                     <a href="{% url 'voting:tally_votes' voting.id %}" class="btn btn-primary">Hacer recuento</a>
                     {% endif %}
                     <a href="{% url 'visualizer:voting_detail' voting.id %}" class="btn btn-primary">Visualizar</a>
