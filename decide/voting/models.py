@@ -156,7 +156,6 @@ class Voting(models.Model):
             for vote, count in response_counts.items():
                 value += vote * count
                 num_votes += count
-            
             media = value/num_votes
 
             # Calcular la varianza
