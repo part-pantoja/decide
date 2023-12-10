@@ -51,6 +51,7 @@ class LoginView(APIView):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            token, _ = Token.objects.get_or_create(user=user)
             login(request, user)
             return redirect('bienvenida', username=user.username)
         else:
@@ -73,6 +74,7 @@ class EmailLoginView(APIView):
                 usuario = usuarios_con_correo.first()
 
                 if usuario.check_password(password):
+                    token, _ = Token.objects.get_or_create(user=usuario)
                     login(request, usuario, backend='django.contrib.auth.backends.ModelBackend')
                     return redirect('bienvenida', username=usuario.username)
                 else:
@@ -111,12 +113,14 @@ class RegisterView(APIView):
         if form.is_valid():
             user = form.save()
 
+            token, _ = Token.objects.get_or_create(user=user)
+
             # Genera el token para el usuario recién registrado
 
-            token = default_token_generator.make_token(user)
+            token2 = default_token_generator.make_token(user)
 
             #Guardar el token en el campo de first_name del user
-            user.first_name = token
+            user.first_name = token2
             #Marcar como False el campo is_active
             user.is_active = False
             user.save()
@@ -128,7 +132,7 @@ class RegisterView(APIView):
             message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
             message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
            'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
-           '/ para verificar su identidad: ' + token
+           '/ para verificar su identidad: ' + token2
             message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
 
             template = render_to_string('registro/email_template.html', {
