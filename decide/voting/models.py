@@ -36,8 +36,6 @@ class Question(models.Model):
 
     def __str__(self):
         return self.desc
-
-
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, related_name='options', on_delete=models.CASCADE)
     number = models.PositiveIntegerField(blank=True, null=True)
@@ -100,9 +98,6 @@ class Voting(models.Model):
         return vote_list
 
     def tally_votes(self, token=''):
-        '''
-        The tally is a shuffle and then a decrypt
-        '''
 
         votes = self.get_votes(token)
 
@@ -137,30 +132,6 @@ class Voting(models.Model):
             self.do_postproc_points_options()
         else:
             self.do_postproc()
-
-    '''
-    def do_postproc(self):
-        tally = self.tally
-        options = self.question.options.all()
-
-        opts = []
-        for opt in options:
-            if isinstance(tally, list):
-                votes = tally.count(opt.number)
-            else:
-                votes = 0
-            opts.append({
-                'option': opt.option,
-                'number': opt.number,
-                'votes': votes
-            })
-
-        data = { 'type': 'IDENTITY', 'options': opts }
-        postp = mods.post('postproc', json=data)
-
-        self.postproc = postp
-        self.save()
-    '''
 
     def do_postproc(self):
         tally = self.tally
@@ -219,7 +190,6 @@ class Voting(models.Model):
                 if isinstance(tally, list):
                     votes = tally.count(opt.number)
                     total += votes
-
             for opt in options:
                 if isinstance(tally, list):
                     votes = tally.count(opt.number)
@@ -231,7 +201,6 @@ class Voting(models.Model):
                     'votes': votes,
                     'percentage': (votes/total)*100
                 })
-
         data = {'type': 'IDENTITY', 'options': opts, 'media': media}
         postp = mods.post('postproc', json=data)
 
