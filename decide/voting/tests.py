@@ -13,6 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 
 from base import mods
 from base.tests import BaseTestCase
@@ -249,10 +250,6 @@ class VotingTestCase(BaseTestCase):
         response = self.client.post('/voting/{}/'.format(v.pk), data, format='json')
         self.assertEquals(response.status_code, 405)
 
-    
-
-    
-
 class LogInSuccessTests(StaticLiveServerTestCase):
 
     def setUp(self):
@@ -334,7 +331,7 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
 class QuestionsTests(StaticLiveServerTestCase):
 
-    def setUp(self):
+    def test_setUp(self):
         #Load base test functionality for decide
         self.base = BaseTestCase()
         self.base.setUp()
@@ -379,6 +376,76 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
 
+    def test_createMultipleOptionQuestionSuccess(self):
+        self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
+        self.cleaner.set_window_size(1280, 720)
+
+        self.cleaner.find_element(By.ID, "id_username").click()
+        self.cleaner.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.cleaner.find_element(By.ID, "id_password").click()
+        self.cleaner.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.cleaner.find_element(By.ID, "id_password").send_keys("Keys.ENTER")
+
+        self.cleaner.get(self.live_server_url+"/admin/voting/question/add/")
+        
+        self.cleaner.find_element(By.ID, "id_desc").click()
+        self.cleaner.find_element(By.ID, "id_desc").send_keys('Test')
+        select_element = self.cleaner.find_element(By.ID, "id_type")
+        Select(select_element).select_by_visible_text('Multiple Choice') 
+        self.cleaner.find_element(By.ID, "id_options-0-number").click()
+        self.cleaner.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.cleaner.find_element(By.ID, "id_options-0-option").click()
+        self.cleaner.find_element(By.ID, "id_options-0-option").send_keys('test1')
+        self.cleaner.find_element(By.ID, "id_options-1-number").click()
+        self.cleaner.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.cleaner.find_element(By.ID, "id_options-1-option").click()
+        self.cleaner.find_element(By.ID, "id_options-1-option").send_keys('test2')
+        self.cleaner.find_element(By.ID, "id_options-2-number").click()
+        self.cleaner.find_element(By.ID, "id_options-2-number").send_keys('3')
+        self.cleaner.find_element(By.ID, "id_options-2-option").click()
+        self.cleaner.find_element(By.ID, "id_options-2-option").send_keys('test3')
+        self.cleaner.find_element(By.NAME, "_save").click()
+
+        self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
+    
+    def test_createPointsOptionQuestionSuccess(self):
+        self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
+        self.cleaner.set_window_size(1280, 720)
+
+        self.cleaner.find_element(By.ID, "id_username").click()
+        self.cleaner.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.cleaner.find_element(By.ID, "id_password").click()
+        self.cleaner.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.cleaner.find_element(By.ID, "id_password").send_keys("Keys.ENTER")
+
+        self.cleaner.get(self.live_server_url+"/admin/voting/question/add/")
+        
+        self.cleaner.find_element(By.ID, "id_desc").click()
+        self.cleaner.find_element(By.ID, "id_desc").send_keys('Test')
+        self.cleaner.find_element(By.ID, "id_weight").click()
+        self.cleaner.find_element(By.ID, "id_weight").send_keys('10')
+        select_element = self.cleaner.find_element(By.ID, "id_type")
+        Select(select_element).select_by_visible_text('Points Options') 
+        self.cleaner.find_element(By.ID, "id_options-0-number").click()
+        self.cleaner.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.cleaner.find_element(By.ID, "id_options-0-option").click()
+        self.cleaner.find_element(By.ID, "id_options-0-option").send_keys('test1')
+        self.cleaner.find_element(By.ID, "id_options-1-number").click()
+        self.cleaner.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.cleaner.find_element(By.ID, "id_options-1-option").click()
+        self.cleaner.find_element(By.ID, "id_options-1-option").send_keys('test2')
+        self.cleaner.find_element(By.ID, "id_options-2-number").click()
+        self.cleaner.find_element(By.ID, "id_options-2-number").send_keys('3')
+        self.cleaner.find_element(By.ID, "id_options-2-option").click()
+        self.cleaner.find_element(By.ID, "id_options-2-option").send_keys('test3')
+        self.cleaner.find_element(By.NAME, "_save").click()
+
+        self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
+    
     def createCensusEmptyError(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.cleaner.set_window_size(1280, 720)
@@ -399,6 +466,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/add/")
 
 class VotingModelTestCase(BaseTestCase):
+
     def setUp(self):
         q = Question(desc='Descripcion')
         q.save()
