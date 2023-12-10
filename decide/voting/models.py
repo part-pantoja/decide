@@ -256,8 +256,7 @@ class Voting(models.Model):
                 if voto in dicc_opciones_valores:
                     dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
                 else:
-                    dicc_opciones_valores[voto]=votos_unitarios[indice+1]
-                    
+                    dicc_opciones_valores[voto]=votos_unitarios[indice+1]     
         opts = []
         for opt in options:
             if opt.number in dicc_opciones_valores:
@@ -269,12 +268,10 @@ class Voting(models.Model):
                 'number': opt.number,
                 'votes': votes
             })
-
         data = { 'type': 'IDENTITY', 'options': opts }
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
         self.save()
-
     def __str__(self):
         return self.name
