@@ -161,7 +161,6 @@ class RegisterView(APIView):
             #return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
             errors = form.errors
             return render(request, 'registro/registry.html', {'form': form, 'errors': errors})
-    
     def get(self, request):
         form = UserCreationForm2()
         return render(request, 'registro/registry.html', {'form':form})

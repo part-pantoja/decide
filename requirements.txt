@@ -12,3 +12,4 @@ django-rest-swagger==2.2.0
 selenium==4.7.2
 pynose==1.4.8
 django-allauth==0.58.2
+django-bootstrap-v5==1.0.11
