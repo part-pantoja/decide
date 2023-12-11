@@ -4,9 +4,9 @@
 <h1>Votaciones</h1>
 <h3>A continuación se muestran todas las votaciones disponibles.
 <form method="get" action="{% url 'booth:booth_home' %}">
-    <button type="submit" name="filtro" class="btn btn-primary" value="sin_fecha_fin">Disponibles</button>
+    <button type="submit" name="filtro" class="btn btn-primary" value="disponibles">Disponibles</button>
     <button type="submit" name="filtro" class="btn btn-primary" value="todas">Todas las Votaciones</button>
-    <button type="submit" name="filtro" class="btn btn-primary" value="sin_fechas">No iniciadas</button>
+    <button type="submit" name="filtro" class="btn btn-primary" value="no_iniciadas">No iniciadas</button>
 </form>
     
     {% for voting in votings %}
