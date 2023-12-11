@@ -2,9 +2,9 @@
 {% load i18n static %}
 
 {% block extrahead %}
-    <link type="text/css" rel="stylesheet"
-         href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -15,34 +15,208 @@
                 <h1 class="navbar-brand">Decide</h1>
             </div>
         </nav>
-          
 
-        <div class="voting container">
+        <div class="voting container" >
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
 
             <h2 v-if="!voting.start_date">Votación no comenzada</h2>
             <h2 v-else-if="!voting.end_date">Votación en curso</h2>
             <div v-else>
                 <h2 class="heading">Resultados:</h2>
+                <form v-if="voting.question.type === 'single_choice'">
+                <!-- Mostrar la tabla -->
+                    <table class="table table-bordered table-striped" >
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.number]]    [[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Diagrama de queso</th>
+                                <th>Diagrama de barras</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="chart">
+                                        <canvas id="pieChart" width="300" height="300"></canvas>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                var ctx = document.getElementById('pieChart').getContext('2d');
+                                                var data = {
+                                                    labels: voting.postproc.map(opt => opt.number),
+                                                    datasets: [{
+                                                        data: voting.postproc.map(opt => opt.votes),
+                                                        backgroundColor: [
+                                                            'rgba(255, 99, 132, 0.5)',
+                                                            'rgba(54, 162, 235, 0.5)',
+                                                            'rgba(255, 206, 86, 0.5)',
+                                                            'rgba(75, 192, 192, 0.5)',
+                                                            'rgba(153, 102, 255, 0.5)',
+                                                            'rgba(255, 159, 64, 0.5)',
+                                                        ],
+                                                        borderColor: [
+                                                            'rgba(255, 99, 132, 1)',
+                                                            'rgba(54, 162, 235, 1)',
+                                                            'rgba(255, 206, 86, 1)',
+                                                            'rgba(75, 192, 192, 1)',
+                                                            'rgba(153, 102, 255, 1)',
+                                                            'rgba(255, 159, 64, 1)',
+                                                        ],
+                                                        borderWidth: 1
+                                                    }]
+                                                };
 
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Opción</th>
-                            <th>Puntuación</th>
-                            <th>Votos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="opt in voting.postproc" :key="opt.number">
-                            <th>[[opt.option]]</th>
-                            <td>[[opt.postproc]]</td>
-                            <td class="text-muted">[[opt.votes]]</td>
-                        </tr>
-                    </tbody>
-                </table>
+                                                var options = {
+                                                    responsive: true,
+                                                    maintainAspectRatio: false
+                                                };
+
+                                                var myPieChart = new Chart(ctx, {
+                                                    type: 'pie',
+                                                    data: data,
+                                                    options: options
+                                                });
+                                            });
+                                        </script>
+                                    </div>
+                                </td>
+                                <td>
+                                    <!-- Agregar el gráfico de barras -->
+                                    <div class="chart">
+                                        <canvas id="barChart" width="500" height="300"></canvas>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                var ctx = document.getElementById('barChart').getContext('2d');
+                                                var data = {
+                                                    labels: voting.postproc.map(opt => opt.number),
+                                                    datasets: [{
+                                                        label: 'Número de Votos',
+                                                        data: voting.postproc.map(opt => opt.votes),
+                                                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                                                        borderColor: 'rgba(75, 192, 192, 1)',
+                                                        borderWidth: 1
+                                                    }]
+                                                };
+
+
+                                                var options = {
+                                                    responsive: true,
+                                                    maintainAspectRatio: false
+                                                };
+
+                                                var myBarChart = new Chart(ctx, {
+                                                    type: 'bar',
+                                                    data: data,
+                                                    options: options
+                                                });
+                                            });
+                                        </script>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                <div v-if="voting.question.type === 'single_choice' || voting.question.type === 'yesno_response'">
+
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Porcentaje de Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <td>[[opt.number]]</td>
+                                <td>[[opt.percentage]]%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+                <form v-if="voting.question.type === 'open_response'">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Valor</th>
+                                <th>Número de votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <td>[[opt.option]]</td>
+                                <td>[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div v-if="voting.question.type === 'multiple_choice'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
+                </div>
+                <div v-if="voting.question.type === 'points_options'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
+
+                </div>
+                
+
             </div>
-
         </div>
     </div>
 {% endblock %}
@@ -52,18 +226,55 @@
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        var voting = {{voting|safe}};
-        const { createApp } = Vue
-        createApp({
-            delimiters: ['[[', ']]'],
-            data() {
-                return {
-                    voting: voting
+        document.addEventListener('DOMContentLoaded', function () {
+            var voting = {{ voting|safe }};
+            const { createApp } = Vue;
+
+            createApp({
+                delimiters: ['[[', ']]'],
+                data() {
+                    return {
+                        voting: voting
+                    };
+                },
+                mounted() {
+                    this.createChart();
+                },
+                methods: {
+                    createChart() {
+                        const ctx = document.getElementById('votingChart').getContext('2d');
+                        const chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: this.voting.postproc.map(opt => opt.option),
+                                datasets: [{
+                                    label: 'Votos',
+                                    data: this.voting.postproc.map(opt => opt.votes),
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true
+                                        }
+                                    }]
+                                }
+                            }
+                        });
+                    }
                 }
-            }
-        }).mount('#app-visualizer')
+            }).mount('#app-visualizer');
+        });
     </script>
 </body>
-{% endblock %}
+{% endblock %}
