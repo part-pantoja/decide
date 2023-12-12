@@ -13,6 +13,7 @@
 <div id="app-booth">
     <!-- Navbar -->
 
+
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <symbol id="check-circle-fill" viewBox="0 0 16 16">
           <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"></path>
@@ -151,7 +152,6 @@
           
             
             <div v-if="voting.question.type === 'yesno_response'">
-                
                 <div class="form-group">
                     <input type="radio" v-model="selected" 
                     :id="'q' + voting.question.options[0].number" 
@@ -166,13 +166,11 @@
                     :value="voting.question.options[1].number">
                     No
                 </div>
+                <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
+                {% trans "Vote" %}
+                </button>
 
             </div>
-            
-
-            <button class="btn btn-primary mt-3" v-on:click="decideSend">
-                {% trans "Vote" %}
-            </button>
 
 
         </div>
@@ -306,6 +304,7 @@
                     this.successVote = false;
                 },
                 decideEncrypt() {
+                    console.log(this.selected)
                     var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
@@ -323,6 +322,12 @@
                         concatenatedString += key + "63789" + this.optionWeights[key] + "63789";
                     }
                     var bigmsg = BigInt.fromJSONObject(concatenatedString);
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
+                decideYesNoEncrypt(){
+                    console.log(this.selected)
+                    var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
@@ -384,6 +389,35 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
+
+                decideYesNoSend(evt){
+
+                    evt.preventDefault();
+                    if (this.selected.length === 0) {
+                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
+                        return;
+                    }
+
+                    var votes = this.decideYesNoEncrypt();
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
                 
                 decideMultipleOptionSend(evt) {
                     evt.preventDefault();
