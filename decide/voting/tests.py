@@ -1,5 +1,6 @@
 import random
 import itertools
+from selenium.webdriver.support.ui import Select
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -340,9 +341,12 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = True
+        options.headless = False
         self.driver = webdriver.Chrome(options=options)
-
+        self.decide_user = User.objects.create_user(username='decide', password='decide')
+        self.decide_user.is_staff = True
+        self.decide_user.is_superuser = True
+        self.decide_user.save()
         super().setUp()
 
     def tearDown(self):
@@ -398,6 +402,26 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[3]/div/div[1]/div/form/div/p').text == 'Please correct the errors below.')
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/add/")
 
+    def testOrderChoiceVotingExist(self):
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.get(self.live_server_url + "/admin/voting/question/add/")
+
+        type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
+        options = [option.text for option in type_dropdown.options]
+
+        self.assertIn("Order Choice", options)
+        
+        
 class VotingModelTestCase(BaseTestCase):
     def setUp(self):
         q = Question(desc='Descripcion')
@@ -419,3 +443,5 @@ class VotingModelTestCase(BaseTestCase):
     def testExist(self):
         v=Voting.objects.get(name='Votacion')
         self.assertEquals(v.question.options.all()[0].option, "opcion 1")
+        
+    
