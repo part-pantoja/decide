@@ -212,7 +212,6 @@ class Voting(models.Model):
     def do_postproc_yesno(self):
 
         tally = self.tally
-        options = self.question.options.all()
         opts = []
 
         yes_votes = tally.count(1)
