@@ -130,6 +130,8 @@ class Voting(models.Model):
             self.do_postproc_multiple_choice()
         elif self.question.type == 'points_options':
             self.do_postproc_points_options()
+        elif self.question.type == 'yesno_response':
+            self.do_postproc_yesno()
         else:
             self.do_postproc()
 
@@ -200,11 +202,47 @@ class Voting(models.Model):
                     'votes': votes,
                     'percentage': (votes/total)*100
                 })
-        data = {'type': 'IDENTITY', 'options': opts, 'media': media}
+        data = {'type': 'IDENTITY', 'options': opts, 'media':media}
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
         self.save()
+
+
+    def do_postproc_yesno(self):
+
+        tally = self.tally
+        options = self.question.options.all()
+        opts = []
+
+        yes_votes = tally.count(1)
+        no_votes = tally.count(2)
+        total_votes = yes_votes + no_votes
+
+        yes_ratio = (yes_votes/total_votes)
+        no_ratio = (no_votes/total_votes)
+
+        opts.append({
+            'option': 'Si',
+            'votes': yes_votes,
+            'percentage': (yes_ratio * 100) if total_votes > 0 else 0
+        })
+
+        opts.append({
+            'option': 'No',
+            'votes': no_votes,
+            'percentage': (no_ratio * 100) if total_votes > 0 else 0
+        })
+
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
+
+        print(opts)
+
+        self.postproc = postp
+        self.save()
+
+
 
 
     def do_postproc_multiple_choice(self):
@@ -234,8 +272,10 @@ class Voting(models.Model):
         data = { 'type': 'IDENTITY', 'options': opts }
         postp = mods.post('postproc', json=data)
 
+
         self.postproc = postp
         self.save()
+
 
     def do_postproc_points_options(self):
         tally = self.tally
