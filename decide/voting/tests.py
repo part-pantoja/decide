@@ -453,6 +453,62 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
         
+    def testOrderChoiceVotingStartAndStop(self):
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+        
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        
+        q = Question(desc='test question', type='order_choice')
+        q.save()
+
+
+        options_data = [
+        {'number': 1, 'option': 'test1'},
+        {'number': 2, 'option': 'test2'},
+            ]
+
+        for data in options_data:
+            option = QuestionOption(question=q, **data)
+            option.save()
+
+
+        v = Voting(name='test voting', question=q)
+        v.save()
+
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        
+        self.driver.get(self.live_server_url + "/admin/voting/voting/")
+
+        # Seleccionar la casilla de "test voting"
+        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
+        checkbox.click()
+
+        # Seleccionar la acción 'Start' del menú desplegable 'Actions'
+        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
+        actions_dropdown.select_by_visible_text('Start')
+
+        # Hacer clic en el botón 'Go'
+        self.driver.find_element(By.NAME, 'index').click()
+
+        
+        v_id = Voting.objects.latest('id').id  
+        self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
+
+        self.assertTrue(self.driver.current_url == self.live_server_url + f'/booth/{v_id}/')
+
+
+        
+        
         
 class VotingModelTestCase(BaseTestCase):
     def setUp(self):
