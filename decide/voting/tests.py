@@ -420,6 +420,38 @@ class QuestionsTests(StaticLiveServerTestCase):
         options = [option.text for option in type_dropdown.options]
 
         self.assertIn("Order Choice", options)
+
+    def testOrderChoiceVotingCreate(self):
+        
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+        
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        
+        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
+        
+        type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
+        type_dropdown.select_by_visible_text("Order Choice")
+        
+        self.driver.find_element(By.ID, "id_desc").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys('Test')
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys('test1')
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys('test2')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
         
         
 class VotingModelTestCase(BaseTestCase):
