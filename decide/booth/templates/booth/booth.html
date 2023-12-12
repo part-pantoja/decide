@@ -167,6 +167,28 @@
                     No
                 </div>
                 <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
+
+
+
+
+
+            <div v-for="question in voting.questions" :key="question.desc">
+                <h2>[[ question.id ]] - [[ question.desc ]]</h2>
+        
+                <form v-for="opt in question.options" :key="opt.number">
+                    <div class="form-group">
+                        <input type="radio" v-model="selectedDicc[question.id]"
+                            :id="'q' + question.desc + 'o' + opt.number"
+                            :name="'question_' + question.desc"
+                            :value="opt.number">
+                        [[ opt.option ]]
+                    </div>
+                
+                </form>
+            </div>
+        
+            <button class="btn btn-primary mt-3" v-on:click="decideSendDicc">
+
                 {% trans "Vote" %}
                 </button>
 
@@ -207,10 +229,14 @@
                 return {
                     voting: voting,
                     selected: "",
+
                     selectedOptions: [],
                     optionWeights: {},
                     totalPointsToAssign: voting.question.weight,
                     assignedWeight: 0,
+
+                    selectedDicc: {},
+
                     signup: true,
                     successVote: false,
                     alertShow: false,
@@ -218,6 +244,7 @@
                     alertLvl: "info",
                     token: null,
                     user: null,
+                    questionId: null,
                     form: {
                         username: '',
                         password: ''
@@ -236,6 +263,7 @@
             },
             methods: {
                 init() {
+                    console.log('Voting data:', this.voting);
                     var cookies = document.cookie.split("; ");
                     cookies.forEach((c) => {
                         var cs = c.split("=");
@@ -244,6 +272,12 @@
                             this.getUser();
                         }
                     });
+                },
+
+                // Función para obtener el ID de la pregunta a partir de su descripción
+                getQuestionId(questionDesc) {
+                    const question = this.voting.questions.find(q => q.desc === questionDesc);
+                    return question ? question.id : null;
                 },
                 postData(url, data) {
                     // Default options are marked with *
@@ -282,7 +316,9 @@
                         });
                 },
                 getUser(evt) {
+
                     var data = {token: this.token};
+                    
                     this.postData("{% url "gateway" "authentication" "/getuser/" %}", data)
                         .then(data => {
                             this.user = data;
@@ -309,6 +345,7 @@
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
+
                 decideMultipleOptionEncrypt() {
                     var number = parseInt(this.selectedOptions.join("63789"))
                     var bigmsg = BigInt.fromJSONObject(number.toString());
@@ -343,6 +380,17 @@
                 decideEncryptOpen() {
                     var bigmsg = BigInt.fromJSONObject(this.userResponse.trim());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+
+                decideEncryptDicc() {
+                    var concatenatedString = "";
+                    
+                    for (var key in this.selectedDicc) {
+                        concatenatedString += key + "63789" + this.selectedDicc[key] + "63789";
+                    }
+                    var bigmsg = BigInt.fromJSONObject(concatenatedString);
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    console.log("Cadena de texto ", concatenatedString)
+
                     return cipher;
                 },
                 decideSend(evt) {
@@ -405,7 +453,10 @@
                         voter: this.user.id,
                         token: this.token
                     };
+
                     
+
+
                     this.postData("{% url "gateway" "store" "/" %}", data)
                         .then(data => {
                             this.successVote = true;
@@ -417,6 +468,68 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
+
+                decideSendDi(evt) {
+                    evt.preventDefault();
+                    if (!this.selectedDic) {
+                        this.showAlert("danger", "Please select an option before voting.");
+                        return;
+                    }      
+                    
+                    const votes = [];
+                    console.log(this.selectedDic)
+                    // Iterar sobre las preguntas seleccionadas
+                    for (const questionDesc in this.selectedDic) {
+                        if (this.selected.hasOwnProperty(questionDesc)) {
+                            const selectedOption = this.selected[questionDesc];
+
+                            // Obtener el ID de la pregunta
+                            const questionId = this.getQuestionId(questionDesc);
+                            console.log("questionId:", questionId);
+
+                            const v = this.decideEncrypt(selectedOption);
+                            console.log("voto:", v.alpha.toString());
+
+                            // Agregar el voto a la lista
+                            votes.push({
+                                questionId: questionId,
+                                optionNumber: selectedOption,
+                                vote: {
+                                    a: v.alpha.toString(),
+                                    b: v.beta.toString()
+                                }
+                            });
+                        }
+                    }
+                    console.log("votos:", votes);
+                    
+
+                    console.log("votingId:", this.voting.id);
+                    
+                    var v = this.decideEncrypt();
+                    var data = {
+                        votes: votes,
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
+                    
+
+
+                    
+
 
                 
                 decideMultipleOptionSend(evt) {
@@ -451,6 +564,87 @@
                     
                     var data = {
                         vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
+                decideSendDicc(evt) {
+                    evt.preventDefault();
+                    var votes =  this.decideEncryptDicc()
+                    
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    console.log(this.selectedDicc)
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                decideSendDic(evt) {
+                    evt.preventDefault();
+                    if (!this.selectedDic) {
+                        this.showAlert("danger", "Please select an option before voting.");
+                        return;
+                    }      
+                    
+                    const votes = [];
+                    console.log(this.selectedDic)
+                    // Iterar sobre las preguntas seleccionadas
+                    for (const questionDesc in this.selectedDic) {
+                        if (this.selected.hasOwnProperty(questionDesc)) {
+                            const selectedOption = this.selected[questionDesc];
+
+                            // Obtener el ID de la pregunta
+                            const questionId = this.getQuestionId(questionDesc);
+                            console.log("questionId:", questionId);
+
+                            const v = this.decideEncryptDic(selectedOption);
+                            console.log("voto:", v.alpha.toString());
+
+                            // Agregar el voto a la lista
+                            votes.push({
+                                questionId: questionId,
+                                optionNumber: selectedOption,
+                                vote: {
+                                    a: v.alpha.toString(),
+                                    b: v.beta.toString()
+                                }
+                            });
+                        }
+                    }
+                    console.log("votos:", votes);
+                    
+
+                    console.log("votingId:", this.voting.id);
+                    
+                    var v = this.decideEncryptDic();
+                    var data = {
+                        votes: votes,
+
                         voting: this.voting.id,
                         voter: this.user.id,
                         token: this.token
