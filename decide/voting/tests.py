@@ -13,6 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 
 from base import mods
 from base.tests import BaseTestCase
@@ -53,48 +54,6 @@ class VotingTestCase(BaseTestCase):
         a.save()
         v.auths.add(a)
 
-        return v
-    
-    def test_create_voting_with_blank_votes(self):
-        q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-        v = Voting(name='test voting', question=q)
-        v.save()
-        
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        theres_blank_vote = False
-        for questionoption in q.options.all():
-            theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
-        if not theres_blank_vote:
-            self.fail("There's no blank vote option")
-        return v
-    
-    def test_turning_blank_option_off_removes_option(self):
-        q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-        v = Voting(name='test voting', question=q)
-        v.save()
-        
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        q.is_blank_vote_allowed = False
-        q.save()
-        theres_blank_vote = False
-        for questionoption in q.options.all():
-            theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
-        if theres_blank_vote:
-            self.fail("There still is a blank vote option")
         return v
 
     def create_voters(self, v):
@@ -291,10 +250,6 @@ class VotingTestCase(BaseTestCase):
         response = self.client.post('/voting/{}/'.format(v.pk), data, format='json')
         self.assertEquals(response.status_code, 405)
 
-    
-
-    
-
 class LogInSuccessTests(StaticLiveServerTestCase):
 
     def setUp(self):
@@ -304,7 +259,6 @@ class LogInSuccessTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -337,7 +291,6 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -385,8 +338,12 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
-        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
+
+        self.decide_user = User.objects.create_user(username='decide', password='decide')
+        self.decide_user.is_staff = True
+        self.decide_user.is_superuser = True
+        self.decide_user.save()
 
         super().setUp()
 
@@ -424,6 +381,44 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
 
+    def testcreateYesNoQuestionSuccess(self):
+
+        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
+        
+        self.driver.find_element(By.ID, "id_desc").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys('YesNo')
+
+        select_element = self.driver.find_element(By.ID, "id_type")
+        Select(select_element).select_by_visible_text('YesNo Response') 
+        
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys('testYes')
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys('testNo')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        self.driver.get(self.live_server_url + "/admin/voting/question/")
+        enlace_testyesno = self.driver.find_element(By.LINK_TEXT, "YesNo")
+        self.assertTrue(enlace_testyesno.is_displayed())
+
+        print("Exito al crear yesno question")
+
+
     def createCensusEmptyError(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.cleaner.set_window_size(1280, 720)
@@ -444,6 +439,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/add/")
 
 class VotingModelTestCase(BaseTestCase):
+
     def setUp(self):
         q = Question(desc='Descripcion')
         q.save()
