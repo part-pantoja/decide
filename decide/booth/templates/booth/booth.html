@@ -97,104 +97,112 @@
         <!-- Voting -->
         <div v-if="!signup">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
-            <h2>[[ voting.question.desc ]]</h2>
-            <div v-if="voting.question.type === 'multiple_choice'">
-                <form>
-                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
-                        <input type="checkbox"
-                            v-model="selectedOptions"  
-                            :id="'q' + opt.number"
-                            :value="opt.number">
-                        [[ opt.option ]]
-                    </div>
-                </form>
-                <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
-                    {% trans "Vote" %}
-                </button>
-            </div>
-            <div v-if="voting.question.type === 'points_options'">
-                Puede repartir [[this.totalPointsToAssign]] puntos
-                <form>
-                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
-                        <br/>
-                        [[ opt.option ]]
-                        <input type="number"
-                            v-model="optionWeights[opt.number]"
-                            :id="'weight_q' + opt.points_given"
-                            :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
-                            :max="totalPointsToAssign + optionWeights[opt.number]"
-                            :min = 0
-                            @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
-                        <br/>
-                    </div>
+            <div v-if="voting.questions.length === 1">
 
-                </form>
-                <div v-if="totalPointsToAssign == 0 ">
-                    <button class="btn btn-primary mt-3" v-on:click="decidePointsOptionsSend">
-                        {% trans "Vote" %}
-                    </button>
-                </div>
-            </div>
-            <div v-if="voting.question.type === 'single_choice'">
-                <form v-for="opt in voting.question.options" :key="opt.number">
-                    <div class="form-group">
-                        <input type="radio" v-model="selected"
+                <div v-for="question in voting.questions" :key="question.desc">
+                    
+                    <h2>[[ question.desc ]]</h2>
+                    
+                        <div v-if="voting.question.type === 'multiple_choice'">
+                            <form>
+                                <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                    <input type="checkbox"
+                                        v-model="selectedOptions"  
+                                        :id="'q' + opt.number"
+                                        :value="opt.number">
+                                    [[ opt.option ]]
+                                </div>
+                            </form>
+                            <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
+                                {% trans "Vote" %}
+                            </button>
+                        </div>
+                        <div v-if="voting.question.type === 'points_options'">
+                            Puede repartir [[this.totalPointsToAssign]] puntos
+                            <form>
+                                <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                    <br/>
+                                    [[ opt.option ]]
+                                    <input type="number"
+                                    v-model="optionWeights[opt.number]"
+                                    :id="'weight_q' + opt.points_given"
+                                    :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
+                                    :max="totalPointsToAssign + optionWeights[opt.number]"
+                                    :min = 0
+                                    @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
+                                    <br/>
+                                </div>
+                                
+                            </form>
+                            <div v-if="totalPointsToAssign == 0 ">
+                                <button class="btn btn-primary mt-3" v-on:click="decidePointsOptionsSend">
+                                    {% trans "Vote" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-if="voting.question.type === 'single_choice'">
+                            <form v-for="opt in voting.question.options" :key="opt.number">
+                                <div class="form-group">
+                                    <input type="radio" v-model="selected"
                                     :id="'q' + opt.number"
                                     name="question"
                                     :value="opt.number">
-                            [[ opt.option ]]
-                    </div>
-                </form>
-                <button class="btn btn-primary mt-3" v-on:click="decideSend">
-                    {% trans "Vote" %}
-                </button>
-            </div>
-          
-            
-            <div v-if="voting.question.type === 'yesno_response'">
-                <div class="form-group">
-                    <input type="radio" v-model="selected" 
-                    :id="'q' + voting.question.options[0].number" 
-                    name="question" 
-                    :value="voting.question.options[0].number">
-                    Sí
+                                    [[ opt.option ]]
+                                </div>
+                            </form>
+                            <button class="btn btn-primary mt-3" v-on:click="decideSend">
+                                {% trans "Vote" %}
+                            </button>
+                        </div>
+                        
+                        <div v-if="voting.question.type === 'yesno_response'">
+                            <div class="form-group">
+                                <input type="radio" v-model="selected" 
+                                :id="'q' + voting.question.options[0].number" 
+                                name="question" 
+                                :value="voting.question.options[0].number">
+                                Sí
+                            </div>
+                            <div class="form-group">
+                                <input type="radio" v-model="selected" 
+                                :id="'q' + voting.question.options[1].number" 
+                                name="question" 
+                                :value="voting.question.options[1].number">
+                                No
+                            </div>
+                            <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
+                        </div>
                 </div>
-                <div class="form-group">
-                    <input type="radio" v-model="selected" 
-                    :id="'q' + voting.question.options[1].number" 
-                    name="question" 
-                    :value="voting.question.options[1].number">
-                    No
-                </div>
-                <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
-
-
-
-
-
-            <div v-for="question in voting.questions" :key="question.desc">
-                <h2>[[ question.id ]] - [[ question.desc ]]</h2>
-        
-                <form v-for="opt in question.options" :key="opt.number">
-                    <div class="form-group">
-                        <input type="radio" v-model="selectedDicc[question.id]"
-                            :id="'q' + question.desc + 'o' + opt.number"
-                            :name="'question_' + question.desc"
-                            :value="opt.number">
-                        [[ opt.option ]]
-                    </div>
+            </div>        
                 
-                </form>
-            </div>
-        
-            <button class="btn btn-primary mt-3" v-on:click="decideSendDicc">
+                                
+                                
+                                
+            <div v-else>
 
-                {% trans "Vote" %}
-                </button>
+            
+                <div v-for="question in voting.questions" :key="question.desc">
+                    <h2>[[ question.id ]] - [[ question.desc ]]</h2>
+            
+                    <form v-for="opt in question.options" :key="opt.number">
+                        <div class="form-group">
+                            <input type="radio" v-model="selectedDicc[question.id]"
+                                :id="'q' + question.desc + 'o' + opt.number"
+                                :name="'question_' + question.desc"
+                                :value="opt.number">
+                            [[ opt.option ]]
+                        </div>
+                    
+                    </form>
+                </div>
+            
+                <button class="btn btn-primary mt-3" v-on:click="decideSendDic">
 
-            </div>
+                    {% trans "Vote" %}
+                    </button>
 
-
+                </div>
+            </div> 
         </div>
 
     </div>
@@ -232,7 +240,7 @@
 
                     selectedOptions: [],
                     optionWeights: {},
-                    totalPointsToAssign: voting.question.weight,
+                    totalPointsToAssign: voting.questions[0].weight,
                     assignedWeight: 0,
 
                     selectedDicc: {},
@@ -261,6 +269,7 @@
                 this.init()
                 ElGamal.BITS = this.keybits;
             },
+            
             methods: {
                 init() {
                     console.log('Voting data:', this.voting);
@@ -369,7 +378,7 @@
                     return cipher;
                 },
                 updateTotalPointsToAssign() { 
-                    const totalWeight = this.voting.question.weight;
+                    const totalWeight = this.voting.questions[0].weight;
                     const assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
                     this.totalPointsToAssign = totalWeight - assignedWeight
 
@@ -380,7 +389,7 @@
                 decideEncryptOpen() {
                     var bigmsg = BigInt.fromJSONObject(this.userResponse.trim());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
-
+                },
                 decideEncryptDicc() {
                     var concatenatedString = "";
                     
@@ -396,7 +405,7 @@
                 decideSend(evt) {
                     evt.preventDefault();
 
-                    if (this.voting.question.type === 'open_response') {
+                    if (this.voting.question[0].type === 'open_response') {
                         // Validar que se haya ingresado una respuesta
                         if (!this.userResponse.trim()) {
                             this.showAlert("danger", '{% trans "Please enter your response." %}');
