@@ -14,6 +14,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.action_chains import ActionChains
+
 
 from base import mods
 from base.tests import BaseTestCase
@@ -114,6 +116,30 @@ class VotingTestCase(BaseTestCase):
 
         for q in v.postproc:
             self.assertEqual(tally.get(q["number"], 0), q["votes"])
+
+
+    def test_create_voting_with_yesno_response(self):
+        
+        q = Question(desc='test yesno question')
+        q.save()
+
+        opt = QuestionOption(question=q, option='Si')
+        opt.save()
+
+        opt = QuestionOption(question=q, option='No')
+        opt.save()
+
+        v = Voting(name='test yesno voting', question=q)
+        v.save()
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                            defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        
+        print("Test 1 YesNo")
+
+        return v
 
     def test_create_voting_from_api(self):
         data = {'name': 'Example'}
@@ -329,6 +355,7 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[2]/div/div[1]/p').text == 'Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive.')
 
+
 class QuestionsTests(StaticLiveServerTestCase):
 
     def setUp(self):
@@ -381,6 +408,8 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
 
+
+
     def testcreateYesNoQuestionSuccess(self):
 
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -401,7 +430,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         select_element = self.driver.find_element(By.ID, "id_type")
         Select(select_element).select_by_visible_text('YesNo Response') 
-        
+
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
@@ -416,9 +445,33 @@ class QuestionsTests(StaticLiveServerTestCase):
         enlace_testyesno = self.driver.find_element(By.LINK_TEXT, "YesNo")
         self.assertTrue(enlace_testyesno.is_displayed())
 
-        print("Exito al crear yesno question")
+        print("TEST 5 yesNo")
 
 
+    def testYesNoExists(self):
+
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.get(self.live_server_url + "/admin/voting/question/add/")
+
+        tipos_preguntas = Select(self.driver.find_element(By.ID, "id_type"))
+        preguntas = [pregunta.text for pregunta in tipos_preguntas.options]
+
+        self.assertIn("YesNo Response", preguntas)
+
+        print("Test 6 YesNo")
+
+
+    
     def createCensusEmptyError(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.cleaner.set_window_size(1280, 720)
@@ -437,6 +490,8 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[3]/div/div[1]/div/form/div/p').text == 'Please correct the errors below.')
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/add/")
+        print("Lulu")
+
 
 class VotingModelTestCase(BaseTestCase):
 
