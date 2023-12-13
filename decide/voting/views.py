@@ -15,6 +15,7 @@ from .forms import VotingForm
 
 @user_passes_test(lambda u: u.is_staff)
 def create_voting(request):
+    
     if request.method == 'POST':
         form = VotingForm(request.POST)
         if form.is_valid():
@@ -28,12 +29,14 @@ def create_voting(request):
     return render(request, "voting/create_voting.html", {"form": form})
 
 class VotingView(generics.ListCreateAPIView):
+    
     queryset = Voting.objects.all()
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_fields = ('id', )
 
     def get(self, request, *args, **kwargs):
+        
         idpath = kwargs.get('voting_id')
         self.queryset = Voting.objects.all()
         version = request.version
@@ -51,7 +54,7 @@ class VotingView(generics.ListCreateAPIView):
                 return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
         questions_data = request.data['questions']
-
+        
         # Validar que haya al menos una pregunta
         if not questions_data:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,21 +63,39 @@ class VotingView(generics.ListCreateAPIView):
         voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'))
 
         voting.save()
+        
+        if questions_data:
+            for question_data in questions_data:
+                
+                if question_data:
+                    return Response({}, status=status.HTTP_400_BAD_REQUEST)
+                # Validar que 'options' esté presente en los datos de la pregunta
+                if 'options' not in question_data:
+                    voting.delete()  # Eliminar la votación si hay un error en los datos
+                    return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        for question_data in questions_data:
-            # Validar que 'options' esté presente en los datos de la pregunta
-            if 'options' not in question_data:
-                voting.delete()  # Eliminar la votación si hay un error en los datos
-                return Response({}, status=status.HTTP_400_BAD_REQUEST)
+                question = Question(desc=question_data['desc'])
+                question.save()
 
-            question = Question(desc=question_data['desc'])
-            question.save()
+                for idx, option_data in enumerate(question_data['options']):
+                    option = QuestionOption(question=question, option=option_data, number=idx)
+                    option.save()
 
-            for idx, option_data in enumerate(question_data['options']):
-                option = QuestionOption(question=question, option=option_data, number=idx)
-                option.save()
+                voting.questions.add(question)
+        else:
+            for question_data in questions_data:
+                if 'options' not in question_data:
+                    voting.delete()  # Eliminar la votación si hay un error en los datos
+                    return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-            voting.questions.add(question)
+                question = Question(desc=question_data['desc'])
+                question.save()
+
+                for idx, option_data in enumerate(question_data['options']):
+                    option = QuestionOption(question=question, option=option_data, number=idx)
+                    option.save()
+
+                voting.questions.add(question)
 
         auth, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
         auth.save()
