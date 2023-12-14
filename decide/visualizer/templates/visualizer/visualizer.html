@@ -45,7 +45,6 @@
                     </table>
                 </form>
 
-
                 <form v-if="voting.question.type === 'single_choice'">
                 <!-- Mostrar la tabla -->
                     <table class="table table-bordered table-striped" >
@@ -187,7 +186,25 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Media de las respuestas</th>
+                                <th>Mediana de las respuestas</th>
+                                <th>Varianza de las respuestas</th>
+                                <th>Desviación típica de las respuestas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>[[voting.postproc[0].media]]</td>
+                                <td>[[voting.postproc[0].median]]</td>
+                                <td>[[voting.postproc[0].variance]]</td>
+                                <td>[[voting.postproc[0].standard_deviation]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
                 <div v-if="voting.question.type === 'multiple_choice'">
                     <!-- Tabla de resultados -->
                     <table id="votingTable" class="table table-bordered table-striped">
