@@ -57,8 +57,8 @@ class CreateRequestTestCase(TestCase):
 
 class ManageRequestTestCase(TestCase):
     def setUp(self):
-        self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', is_staff=True)
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', email='decidepartpantoja@gmail.com', is_staff=True)
+        self.user = User.objects.create_user(username='testuser', password='testpassword', email='decidepartpantoja@gmail.com')
         q = Question(desc='test question')
         q.save()
         self.votacion = Voting(name='test voting', question=q)

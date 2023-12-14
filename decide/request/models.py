@@ -14,6 +14,7 @@ class Request(models.Model):
         max_length=10,
         choices=[(tag, tag.value) for tag in RequestStatus],
         default=RequestStatus.PENDING.value)
+    email = models.EmailField(max_length=254, blank=True)
     class Meta:
         unique_together = (('voting_id', 'voter_id'),)
 

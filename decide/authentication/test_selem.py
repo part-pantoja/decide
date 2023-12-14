@@ -19,3 +19,5 @@ class AdminTestCase(StaticLiveServerTestCase):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
+
+    #def test_correct_login_selenium(self):

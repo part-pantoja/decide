@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
 
 from base import mods
 
@@ -26,11 +27,22 @@ class BaseTestCase(APITestCase):
 
     def login(self, user='admin', password='qwerty'):
         data = {'username': user, 'password': password}
-        response = mods.post('authentication/login-page', json=data, response=True)
-        self.assertEqual(response.status_code, 200)
-        self.token = response.json().get('token')
+        #response = mods.post('authentication/login-page', json=data, response=True)
+        response = self.client.post('/authentication/login-page/', data, response=True)
+        self.assertEqual(response.status_code, 302)
+
+        user2 = User.objects.filter(username=user).get()
+        token, _ = Token.objects.get_or_create(user=user2)
+        
+        self.token = token.key
+        
         self.assertTrue(self.token)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+
+        #response = self.client.post('/authentication/login-page/', data)
+        #self.assertEqual(response.status_code, 302)
+        #token, _ = Token.objects.get_or_create(user=usuario)
+        #self.assertTrue(response.wsgi_request.user.is_authenticated)
 
     def logout(self):
         self.client.credentials()
