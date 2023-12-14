@@ -23,7 +23,7 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
 
         self.base.tearDown()
     def test_booth_home_no_voting(self):
-        self.driver.get(self.live_server_url)
+        self.driver.get("http://127.0.0.1:8000/")
         self.driver.set_window_size(1061, 904)
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
         self.driver.find_element(By.ID, "id_username").send_keys("andres")
@@ -40,8 +40,7 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
             self.assertTrue(True)
 
     def test_booth_home_with_votings(self):
-        self.driver.get(self.live_server_url)
-        #self.driver.get("http://127.0.0.1:8000/")
+        self.driver.get("http://127.0.0.1:8000/")
         self.driver.set_window_size(1480, 904)
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
         self.driver.find_element(By.ID, "id_username").send_keys("andres")
