@@ -61,7 +61,6 @@ def manage_request(request):
     if request.method == 'POST':
         if 'aceptar' in request.POST:
             solicitud_id = request.POST.get('aceptar')
-            print(solicitud_id)
             solicitud = Request.objects.get(pk=solicitud_id)
             solicitud.status = RequestStatus.ACCEPTED.value
             solicitud.save()
@@ -75,7 +74,6 @@ def manage_request(request):
             solicitud.status = RequestStatus.DECLINED.value
             solicitud.save()
             usuario = User.objects.get(pk=solicitud.voter_id)
-            print(usuario.email)
             send_email(usuario.email, RequestStatus.DECLINED.value)
         return redirect('request:manage_request')
 
