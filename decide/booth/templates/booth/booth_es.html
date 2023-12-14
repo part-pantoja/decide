@@ -21,7 +21,7 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item" v-if="!signup">
-                        <button v-on:click="decideLogout" class="btn btn-secondary">{% trans "Ausloggen" %}</button>
+                        <button v-on:click="decideLogout" class="btn btn-secondary">{% trans "Cerrar sesión" %}</button>
                     </li>
                     <li class="nav-item" v-if="signup">
                         <!-- Button trigger modal -->
@@ -87,7 +87,7 @@
                             <!-- Register -->
                             <form @submit="onSubmitLogin" v-if="signup">
                                 <div class="form-group mt-2">
-                                    <label for="username">{% trans "Nutzername" %}</label>:
+                                    <label for="username">{% trans "Nombre de usuario" %}</label>:
                                     <input
                                         class="ml-2 form-control"
                                         id="username"
@@ -97,7 +97,7 @@
                                         required />
                                 </div>
                                 <div class="form-group mt-1">
-                                    <label for="password">{% trans "Passwort" %}</label>:
+                                    <label for="password">{% trans "Contraseña" %}</label>:
                                     <input
                                         class = "form-control"
                                         id="password"
@@ -106,7 +106,7 @@
                                         v-model="form.password"
                                         required />
                                 </div>
-                                <button class="btn btn-primary mt-3" type="submit" data-bs-dismiss="modal">{% trans "Anmeldung" %}</button>
+                                <button class="btn btn-primary mt-3" type="submit" data-bs-dismiss="modal">{% trans "Iniciar sesión" %}</button>
                             </form>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
                 </div>
             </form>
             <button class="btn btn-primary mt-3" v-on:click="decideSend">
-                {% trans "Abstimmung" %}
+                {% trans "Votar" %}
             </button>
         </div>
 
