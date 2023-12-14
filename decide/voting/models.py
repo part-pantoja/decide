@@ -129,6 +129,8 @@ class Voting(models.Model):
             self.do_postproc_multiple_choice()
         elif self.question.type == 'points_options':
             self.do_postproc_points_options()
+        elif self.question.type == 'yesno_response':
+            self.do_postproc_yesno()
         else:
             self.do_postproc()
 
@@ -214,6 +216,54 @@ class Voting(models.Model):
         self.postproc = postp
         self.save()
 
+    def do_postproc_yesno(self):
+
+        tally = self.tally
+        opts = []
+
+        yes_votes = tally.count(1)
+        no_votes = tally.count(2)
+        total_votes = yes_votes + no_votes
+
+        yes_ratio = (yes_votes/total_votes) if total_votes > 0 else 0
+        no_ratio = (no_votes/total_votes) if total_votes > 0 else 0
+
+
+        ratio_para_si = 0
+        ratio_para_no = 0
+
+        if no_votes != 0 and no_ratio != 0:
+            ratio_para_si = yes_ratio/no_ratio
+        else:
+            ratio_para_si = 1.0
+
+        if yes_votes != 0 and yes_ratio != 0:
+            ratio_para_no = no_ratio/yes_ratio
+        else:
+            ratio_para_no = 1.0
+
+        opts.append({
+            'option': 'Si',
+            'votes': yes_votes,
+            'percentage': (yes_ratio * 100) if total_votes > 0 else 0,
+            'ratio': ratio_para_si,
+        })
+
+        opts.append({
+            'option': 'No',
+            'votes': no_votes,
+            'percentage': (no_ratio * 100) if total_votes > 0 else 0,
+            'ratio': ratio_para_no,
+        })
+
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
+
+        print(opts)
+
+        self.postproc = postp
+        self.save()
+
     def do_postproc_multiple_choice(self):
 
         tally = self.tally
@@ -241,8 +291,10 @@ class Voting(models.Model):
         data = { 'type': 'IDENTITY', 'options': opts }
         postp = mods.post('postproc', json=data)
 
+
         self.postproc = postp
         self.save()
+
 
     def do_postproc_points_options(self):
         tally = self.tally
