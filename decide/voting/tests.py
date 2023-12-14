@@ -219,8 +219,7 @@ class VotingTestCase(BaseTestCase):
 
         clear = self.store_votes(v)
 
-        data = {'username': 'admin', 'password': 'admin'}
-        response = self.client.post('/authentication/login-page2/', data)
+        self.login()  # set token
         v.tally_votes(self.token)
 
         tally = v.tally
