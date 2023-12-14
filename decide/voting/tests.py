@@ -58,6 +58,49 @@ class VotingTestCase(BaseTestCase):
 
         return v
 
+    def test_create_voting_with_blank_votes(self):
+            q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
+            q.save()
+            for i in range(5):
+                opt = QuestionOption(question=q, option='option {}'.format(i+1))
+                opt.save()
+            v = Voting(name='test voting', question=q)
+            v.save()
+
+            a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                            defaults={'me': True, 'name': 'test auth'})
+            a.save()
+            v.auths.add(a)
+            theres_blank_vote = False
+            for questionoption in q.options.all():
+                theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
+            if not theres_blank_vote:
+                self.fail("There's no blank vote option")
+            return v
+
+    def test_turning_blank_option_off_removes_option(self):
+            q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
+            q.save()
+            for i in range(5):
+                opt = QuestionOption(question=q, option='option {}'.format(i+1))
+                opt.save()
+            v = Voting(name='test voting', question=q)
+            v.save()
+
+            a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                            defaults={'me': True, 'name': 'test auth'})
+            a.save()
+            v.auths.add(a)
+            q.is_blank_vote_allowed = False
+            q.save()
+            theres_blank_vote = False
+            for questionoption in q.options.all():
+                theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
+            if theres_blank_vote:
+                self.fail("There still is a blank vote option")
+            return v
+
+
     def create_voters(self, v):
         for i in range(100):
             u, _ = User.objects.get_or_create(username='testvoter{}'.format(i))
@@ -137,7 +180,7 @@ class VotingTestCase(BaseTestCase):
         a.save()
         v.auths.add(a)
         
-
+        
         return v
     
 
@@ -193,6 +236,7 @@ class VotingTestCase(BaseTestCase):
 
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 201)
+        
 
 
 
@@ -325,6 +369,7 @@ class LogInSuccessTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -357,6 +402,7 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -405,6 +451,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.headless = True
+        options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
         self.decide_user = User.objects.create_user(username='decide', password='decide')
@@ -539,6 +586,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         error_noDesc = self.driver.find_element(By.XPATH, "//*[contains(text(), 'This field is required.')]")
         self.assertTrue(error_noDesc.is_displayed())
+
 
 
     
