@@ -21,8 +21,8 @@ class Question(models.Model):
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
     is_blank_vote_allowed = models.BooleanField(default=False)
 
-    def save(self):
-        super().save()
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         is_there_blank_vote = QuestionOption.objects.filter(question=self, option="Blank Vote").exists()
         if self.is_blank_vote_allowed and not is_there_blank_vote:
             opt = QuestionOption(question=self, option='Blank Vote', number=1)
@@ -36,21 +36,20 @@ class Question(models.Model):
 
     def __str__(self):
         return self.desc
+
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, related_name='options', on_delete=models.CASCADE)
     number = models.PositiveIntegerField(blank=True, null=True)
     option = models.TextField()
     points_given = models.PositiveIntegerField(blank=True, null=True)
 
-
-    def save(self):
+    def save(self, *args, **kwargs):
         if not self.number:
             self.number = self.question.options.count() + 2
-        return super().save()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return '{} ({})'.format(self.option, self.number)
-
 
 class Voting(models.Model):
     name = models.CharField(max_length=200)
@@ -136,7 +135,6 @@ class Voting(models.Model):
     def do_postproc(self):
         tally = self.tally
         options = self.question.options.all()
-
         opts = []
         if self.question.type == 'open_response':
             # Si es una pregunta de respuesta abierta, agrupa las respuestas
@@ -151,27 +149,28 @@ class Voting(models.Model):
 
             value = 0
             num_votes = 0
+            variance = 0
+            standard_deviation = 0
+            if num_votes != 0:
+                #Cálculo de la media
+                for vote, count in response_counts.items():
+                    value += vote * count
+                    num_votes += count
+                media = value/num_votes
+                # Calcular la varianza
+                variance = sum((vote - media) ** 2 * count for vote, count in response_counts.items()) / num_votes
 
-            #Cálculo de la media
-            for vote, count in response_counts.items():
-                value += vote * count
-                num_votes += count
-            media = value/num_votes
+                # Calcular la desviación estándar (raíz cuadrada de la varianza)
+                standard_deviation = math.sqrt(variance)
 
-            # Calcular la varianza
-            variance = sum((vote - media) ** 2 * count for vote, count in response_counts.items()) / num_votes
+                median_index = len(sorted_votes) // 2
 
-            # Calcular la desviación estándar (raíz cuadrada de la varianza)
-            standard_deviation = math.sqrt(variance)
-
-            median_index = len(sorted_votes) // 2
-
-            if len(sorted_votes) % 2 == 1:
-                # Si la cantidad de votos es impar
-                median = sorted_votes[median_index]
-            else:
-                # Si la cantidad de votos es par
-                median = (sorted_votes[median_index - 1] + sorted_votes[median_index]) / 2
+                if len(sorted_votes) % 2 == 1:
+                    # Si la cantidad de votos es impar
+                    median = sorted_votes[median_index]
+                else:
+                    # Si la cantidad de votos es par
+                    median = (sorted_votes[median_index - 1] + sorted_votes[median_index]) / 2
 
             for vote, count in response_counts.items():
                 opts.append({
@@ -194,18 +193,26 @@ class Voting(models.Model):
                     votes = tally.count(opt.number)
                 else:
                     votes = 0
-                opts.append({
-                    'option': opt.option,
-                    'number': opt.number,
-                    'votes': votes,
-                    'percentage': (votes/total)*100
-                })
-        data = {'type': 'IDENTITY', 'options': opts, 'media': media}
+                
+                if total == 0:
+                    opts.append({
+                        'option': opt.option,
+                        'number': opt.number,
+                        'votes': votes,
+                        'percentage': 0
+                    })
+                else:
+                    opts.append({
+                        'option': opt.option,
+                        'number': opt.number,
+                        'votes': votes,
+                        'percentage': (votes/total)*100
+                    })
+        data = {'type': 'IDENTITY', 'options': opts}
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
         self.save()
-
 
     def do_postproc_multiple_choice(self):
 
