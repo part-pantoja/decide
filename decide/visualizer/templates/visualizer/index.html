@@ -3,22 +3,34 @@
 {% block title %}Página de Inicio{% endblock %}
 
 {% block content %}
-    <h1>Votaciones:</h1>
-    {% for voting in votings %}
-
-    <h2>
-        <a href="{% url 'visualizer:voting_detail' voting.id %}">
-        
-        {{voting.id}} : {{voting.name}}
-        </a>
-    </h2>
-    <h5> <a href="{% url 'booth:booth_detail' voting.id %}">Votar</a>
-    </h5>
-    <br>
-    <h5> <a href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
-    </h5>
-    <br>
-
-    {% endfor %}
-
+    <div class="container">
+        <h1 class="mt-4">Votaciones:</h1>
+        <div class="list-group">
+            {% for voting in votings %}
+                <div class="list-group-item">
+                    <h2>
+                        <a href="{% url 'visualizer:voting_detail' voting.id %}" class="text-decoration-none text-dark">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h2 class="card-title">{{ voting.id }} : {{ voting.name }}</h2>
+                                </div>
+                            </div>
+                        </a>
+                    
+                    </h2>
+                    <p>
+                        {% if voting.end_date == null %}
+                            {% if voting.start_date %}
+                            <a class="btn btn-primary btn-sm" href="{% url 'booth:booth_detail' voting.id %}">Votar</a>
+                            {% endif %}
+                            <a class="btn btn-primary btn-sm" href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
+                        {% endif %}
+                        {% if user.is_authenticated and user.is_staff %}
+                            <a class="btn btn-primary btn-sm" href="{% url 'voting:voting_details' voting.id %}">Administrar votación</a>
+                        {% endif %}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
