@@ -6,7 +6,6 @@ from selenium.common.exceptions import NoSuchElementException
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 
 class BoothHomeSeleniumTests(StaticLiveServerTestCase):
     def setUp(self):
@@ -18,7 +17,6 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
         options.headless = True
         self.driver = webdriver.Chrome(options=options)
         super().setUp()
-    
     def tearDown(self):
         super().tearDown()
         self.driver.quit()
