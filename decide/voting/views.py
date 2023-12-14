@@ -1,15 +1,31 @@
 import django_filters.rest_framework
 from django.conf import settings
+from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
+from django.shortcuts import render, redirect
 
 from .models import Question, QuestionOption, Voting
 from .serializers import SimpleVotingSerializer, VotingSerializer
 from base.perms import UserIsStaff
 from base.models import Auth
+from .forms import VotingForm
 
+@user_passes_test(lambda u: u.is_staff)
+def create_voting(request):
+    if request.method == 'POST':
+        form = VotingForm(request.POST)
+        if form.is_valid():
+            voting = form.save(commit=False)
+            voting.save()
+            form.save_m2m()
+            return redirect("visualizer:votings")
+    else:
+        form = VotingForm()
+        
+    return render(request, "voting/create_voting.html", {"form": form})
 
 class VotingView(generics.ListCreateAPIView):
     queryset = Voting.objects.all()
@@ -25,7 +41,6 @@ class VotingView(generics.ListCreateAPIView):
             version = settings.DEFAULT_VERSION
         if version == 'v2':
             self.serializer_class = SimpleVotingSerializer
-
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -37,14 +52,10 @@ class VotingView(generics.ListCreateAPIView):
 
         question = Question(desc=request.data.get('question'))
         question.save()
-        '''
-        if request.data.get('user_response_enabled'):
-            question.user_response_enabled=True
-            question.save()
-        '''
         for idx, q_opt in enumerate(request.data.get('question_opt')):
             opt = QuestionOption(question=question, option=q_opt, number=idx)
             opt.save()
+        
         voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'),
                 question=question)
         voting.save()
@@ -55,15 +66,11 @@ class VotingView(generics.ListCreateAPIView):
         voting.auths.add(auth)
         return Response({}, status=status.HTTP_201_CREATED)
 
-        
-
-
 class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
     queryset = Voting.objects.all()
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     permission_classes = (UserIsStaff,)
-
     def put(self, request, voting_id, *args, **kwars):
         action = request.data.get('action')
         if not action:
@@ -108,3 +115,4 @@ class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
             msg = 'Action not found, try with start, stop or tally'
             st = status.HTTP_400_BAD_REQUEST
         return Response(msg, status=st)
+

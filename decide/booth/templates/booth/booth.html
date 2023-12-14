@@ -12,27 +12,7 @@
 
 <div id="app-booth">
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-primary">
-        <div class="container-fluid">
-            <div class="navbar-brand" >Decide</div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item" v-if="!signup">
-                        <button v-on:click="decideLogout" class="btn btn-secondary">{% trans "Logout" %}</button>
-                    </li>
-                    <li class="nav-item" v-if="signup">
-                        <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#registerModal">
-                            Login
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+
 
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <symbol id="check-circle-fill" viewBox="0 0 16 16">
@@ -71,7 +51,7 @@
                 <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
             </svg>
             <div class="ms-2">
-                ¡Debe iniciar sesión para poder acceder a la votación!
+                ¡Confirme su identidad para acceder a la votación!
             </div>
         </div>
         <div class="container-fluid">
@@ -113,7 +93,30 @@
                 </div>
             </div>
         </div>
-
+        <form @submit="onSubmitLogin" v-if="signup">
+            <div class="form-group mt-2">
+                <label for="username">{% trans "Username" %}</label>:
+                <input
+                    class="ml-2 form-control"
+                    id="username"
+                    type="text"
+                    v-model="form.username"
+                    autocomplete="username"
+                    required />
+            </div>
+            <div class="form-group mt-1">
+                <label for="password">{% trans "Password" %}</label>:
+                <input
+                    class = "form-control"
+                    id="password"
+                    type="password"
+                    autocomplete="current-password"
+                    v-model="form.password"
+                    required />
+            </div>
+            <button class="btn btn-primary mt-3" type="submit">{% trans "Login" %}</button>
+        </form>
+        
         <!-- Voting -->
         <div v-if="!signup">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
@@ -172,7 +175,6 @@
           
             
             <div v-if="voting.question.type === 'yesno_response'">
-                
                 <div class="form-group">
                     <input type="radio" v-model="selected" 
                     :id="'q' + voting.question.options[0].number" 
@@ -187,13 +189,16 @@
                     :value="voting.question.options[1].number">
                     No
                 </div>
+                <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
+                {% trans "Vote" %}
+                </button>
 
                 <button class="btn btn-primary mt-3" v-on:click="decideSend">
                 {% trans "Vote" %}
             </button>
 
             </div>
-            
+
             <div v-if="voting.question.type === 'order_choice'">
                 <form>
                     <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
@@ -216,7 +221,6 @@
             
             </div>
 
-            
 
 
         </div>
@@ -277,10 +281,21 @@
                 }
             },
             beforeMount() {
+                //this.checkUserStatus()
                 this.init()
                 ElGamal.BITS = this.keybits;
             },
             methods: {
+                checkUserStatus() {
+                    var cookies = document.cookie.split("; ");
+                    cookies.forEach((c) => {
+                        var cs = c.split("=");
+                        if (cs[0] == 'csrftoken' && cs[1]) {
+                            this.signup = false;
+                            console.log(this.getUser())
+                        }
+                    });
+                },
                 init() {
                     var cookies = document.cookie.split("; ");
                     cookies.forEach((c) => {
@@ -350,6 +365,7 @@
                     this.successVote = false;
                 },
                 decideEncrypt() {
+                    console.log(this.selected)
                     var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
@@ -367,6 +383,12 @@
                         concatenatedString += key + "63789" + this.optionWeights[key] + "63789";
                     }
                     var bigmsg = BigInt.fromJSONObject(concatenatedString);
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
+                decideYesNoEncrypt(){
+                    console.log(this.selected)
+                    var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
@@ -428,6 +450,35 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
+
+                decideYesNoSend(evt){
+
+                    evt.preventDefault();
+                    if (this.selected.length === 0) {
+                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
+                        return;
+                    }
+
+                    var votes = this.decideYesNoEncrypt();
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
                 
                 decideMultipleOptionSend(evt) {
                     evt.preventDefault();
