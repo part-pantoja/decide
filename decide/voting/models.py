@@ -195,7 +195,6 @@ class Voting(models.Model):
                     votes = tally.count(opt.number)
                 else:
                     votes = 0
-                
                 if total == 0:
                     opts.append({
                         'option': opt.option,
