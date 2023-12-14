@@ -137,9 +137,10 @@ class VotingTestCase(BaseTestCase):
         a.save()
         v.auths.add(a)
         
-        print("Test 1 YesNo")
 
         return v
+    
+
 
     def test_create_voting_from_api(self):
         data = {'name': 'Example'}
@@ -165,6 +166,35 @@ class VotingTestCase(BaseTestCase):
 
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 201)
+
+    
+    def test_create_yesno_voting_from_api(self):
+        data = {'name': 'Example YesNo'}
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 401)
+
+        # login with user no admin
+        self.login(user='noadmin')
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 403)
+
+        # login with user admin
+        self.login()
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 400)
+
+        data = {
+            'name': 'Example YesNo',
+            'desc': 'Example YesNo',
+            'type': 'YESNO_RESPONSE',
+            'question': 'Es usted mayor de edad?',
+            'question_opt': ['Si', 'No']
+        }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 201)
+
+
 
     def test_update_voting(self):
         voting = self.create_voting()
@@ -253,6 +283,16 @@ class VotingTestCase(BaseTestCase):
         self.assertEquals(str(v.question),"test question")
         #Verifica que la primera opcion es option1 (2)
         self.assertEquals(str(v.question.options.all()[0]),"option 1 (2)")
+
+
+    def test_yesNo_to_string(self):
+        v = self.test_create_voting_with_yesno_response()
+        self.assertEquals(str(v), "test yesno voting")
+        self.assertEquals(str(v.question),"test yesno question")
+        self.assertEquals(str(v.question.options.all()[0]),"Si (2)")
+        self.assertEquals(str(v.question.options.all()[1]),"No (3)")
+        
+
 
     def test_create_voting_API(self):
         self.login()
@@ -445,7 +485,6 @@ class QuestionsTests(StaticLiveServerTestCase):
         enlace_testyesno = self.driver.find_element(By.LINK_TEXT, "YesNo")
         self.assertTrue(enlace_testyesno.is_displayed())
 
-        print("TEST 5 yesNo")
 
 
     def testYesNoExists(self):
@@ -468,7 +507,38 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertIn("YesNo Response", preguntas)
 
-        print("Test 6 YesNo")
+
+
+    def testCreateDescriptionEmptyError(self):
+
+        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
+
+        select_element = self.driver.find_element(By.ID, "id_type")
+        Select(select_element).select_by_visible_text('YesNo Response') 
+
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys('testYes')
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys('testNo')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        error_noDesc = self.driver.find_element(By.XPATH, "//*[contains(text(), 'This field is required.')]")
+        self.assertTrue(error_noDesc.is_displayed())
 
 
     
@@ -490,7 +560,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[3]/div/div[1]/div/form/div/p').text == 'Please correct the errors below.')
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/add/")
-        print("Lulu")
+        
 
 
 class VotingModelTestCase(BaseTestCase):
