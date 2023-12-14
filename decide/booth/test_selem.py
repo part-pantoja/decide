@@ -1,16 +1,12 @@
-from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from base.tests import BaseTestCase
-import time
+
+from selenium.common.exceptions import NoSuchElementException
 
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
-
-from django.contrib.auth.models import User
 
 class BoothHomeSeleniumTests(StaticLiveServerTestCase):
     def setUp(self):
@@ -28,7 +24,6 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
-
     def test_booth_home_no_voting(self):
         self.driver.get(self.live_server_url)
         self.driver.set_window_size(1061, 904)
@@ -43,7 +38,7 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
         try:
             etiqueta = self.driver.find_element(By.TAG_NAME, "h2")
             self.assertFalse(etiqueta.is_displayed())
-        except:
+        except NoSuchElementException:
             self.assertTrue(True)
 
     def test_booth_home_with_votings(self):
