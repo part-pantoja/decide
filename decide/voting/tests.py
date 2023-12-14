@@ -597,7 +597,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_desc").send_keys('YesNo')
 
         select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('YesNo Response') 
+        Select(select_element).select_by_visible_text('YesNo Response')
 
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
