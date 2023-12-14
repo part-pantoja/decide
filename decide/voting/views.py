@@ -29,6 +29,7 @@ def create_voting(request):
         
     return render(request, "voting/create_voting.html", {"form": form})
 
+@user_passes_test(lambda u: u.is_staff)
 def voting_details(request, voting_id):
     voting = get_object_or_404(Voting, pk=voting_id)
     return render(request, "voting/voting_details.html", {"voting": voting})
