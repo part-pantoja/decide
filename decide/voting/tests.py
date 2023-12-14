@@ -32,7 +32,7 @@ class VotingHTMLTestCase(BaseTestCase):
         self.a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
         self.a.save()
 
-        self.voting = Voting(id=2, name='test voting', question=self.q)
+        self.voting = Voting(id=100000, name='test voting', question=self.q)
         self.voting.save()
         self.voting.auths.add(self.a)
         self.voting.save()
@@ -55,6 +55,7 @@ class VotingHTMLTestCase(BaseTestCase):
         self.assertTrue(Voting.objects.filter(name='Voting Name', desc='Voting Description',question=self.q).exists())
 
     def test_voting_details(self):
+        self.client.force_login(self.admin_user)
         response = self.client.get(reverse('voting:voting_details', args=[self.voting.id]))
         self.assertEqual(response.status_code, 200)
 
@@ -71,23 +72,26 @@ class VotingHTMLTestCase(BaseTestCase):
         self.assertIsNotNone(self.voting.end_date)
 
     def test_buttons_display(self):
+        self.client.force_login(self.admin_user)
         url = reverse('voting:voting_details', args=[self.voting.id])
         response = self.client.get(url)
-        self.assertContains(response, '<a href="/voting/start/2" class="btn btn-primary">Empezar</a>', html=True)
-        self.assertNotContains(response, '<a href="/voting/stop/2" class="btn btn-primary">Finalizar</a>', html=True)
-        self.assertNotContains(response, '<a href="/voting/tally/2" class="btn btn-primary">Hacer recuento</a>', html=True)
-        self.assertContains(response, '<a href="/visualizer/2/" class="btn btn-primary">Visualizar</a>', html=True)
+        self.assertContains(response, '<a href="/voting/start/100000" class="btn btn-primary">Empezar</a>', html=True)
+        self.assertNotContains(response, '<a href="/voting/stop/100000" class="btn btn-primary">Finalizar</a>', html=True)
+        self.assertNotContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
+        self.assertContains(response, '<a href="/visualizer/100000/" class="btn btn-primary">Visualizar</a>', html=True)
 
     def test_stop_button_displayed_after_start(self):
+        self.client.force_login(self.admin_user)
         start_time = timezone.now() - timedelta(days=1)
         self.voting.start_date = start_time
         self.voting.save()
                        
         url = reverse('voting:voting_details', args=[self.voting.id])
         response = self.client.get(url)
-        self.assertContains(response, '<a href="/voting/stop/2" class="btn btn-primary">Finalizar</a>', html=True)
+        self.assertContains(response, '<a href="/voting/stop/100000" class="btn btn-primary">Finalizar</a>', html=True)
 
     def test_tally_button_displayed_after_stop(self):
+        self.client.force_login(self.admin_user)
         start_time = timezone.now() - timedelta(days=2)
         self.voting.start_date = start_time
         self.voting.save()
@@ -98,7 +102,7 @@ class VotingHTMLTestCase(BaseTestCase):
                        
         url = reverse('voting:voting_details', args=[self.voting.id])
         response = self.client.get(url)
-        self.assertContains(response, '<a href="/voting/tally/2" class="btn btn-primary">Hacer recuento</a>', html=True)
+        self.assertContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
 
 class VotingTestCase(BaseTestCase):
 

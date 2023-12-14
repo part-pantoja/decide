@@ -19,8 +19,12 @@
                     
                     </h2>
                     <p>
-                        <a class="btn btn-primary btn-sm" href="{% url 'booth:booth_detail' voting.id %}">Votar</a>
-                        <a class="btn btn-primary btn-sm" href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
+                        {% if voting.end_date == null %}
+                            {% if voting.start_date %}
+                            <a class="btn btn-primary btn-sm" href="{% url 'booth:booth_detail' voting.id %}">Votar</a>
+                            {% endif %}
+                            <a class="btn btn-primary btn-sm" href="{% url 'request:create_request' voting.id %}">Solicitar censo</a>
+                        {% endif %}
                         {% if user.is_authenticated and user.is_staff %}
                             <a class="btn btn-primary btn-sm" href="{% url 'voting:voting_details' voting.id %}">Administrar votación</a>
                         {% endif %}
