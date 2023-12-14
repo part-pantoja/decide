@@ -237,6 +237,27 @@
                     </div>
 
                 </div>
+
+                <div v-if="voting.question.type === 'order_choice'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Puesto</th>
+                                <th>Opcion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(opt) in sortedOptions" :key="opt.number">
+                                <th>[[opt.order]]</th>
+                                <td>[[opt.option]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                
+                </div>
+                
+                
                 
 
             </div>
@@ -267,6 +288,14 @@
                 mounted() {
                     this.createChart();
                 },
+                computed: {
+                sortedOptions() {
+                    return this.voting.postproc
+                        .slice()
+                        .sort((a, b) => a.votes - b.votes)
+                        .map((opt, index) => ({ ...opt, order: index + 1 }));
+                },
+            },
                 methods: {
                     createChart() {
                         const ctx = document.getElementById('votingChart').getContext('2d');

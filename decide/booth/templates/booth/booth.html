@@ -193,7 +193,34 @@
                 {% trans "Vote" %}
                 </button>
 
+                <button class="btn btn-primary mt-3" v-on:click="decideSend">
+                {% trans "Vote" %}
+            </button>
+
             </div>
+
+            <div v-if="voting.question.type === 'order_choice'">
+                <form>
+                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                        <br/>
+                        [[ opt.option ]]
+                            <input type="number"
+                                v-model="optionWeights[opt.number]"
+                                :id="'q' + opt.number"
+                                :max="voting.question.options.length"
+                                :min = 1
+                            />
+                        <br/>
+                    </div>
+
+                </form>
+                
+                    <button class="btn btn-primary mt-3" v-on:click="decideOrderSend">
+                        {% trans "Vote" %}
+                    </button>
+            
+            </div>
+
 
 
         </div>
@@ -481,6 +508,33 @@
                 },
                 decidePointsOptionsSend(evt) {
                     evt.preventDefault();
+                    var votes =  this.decidePointsOptionEncrypt()
+                    
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                decideOrderSend(evt) {
+                    evt.preventDefault();
+                    if (Object.keys(this.optionWeights).length !== new Set(Object.values(this.optionWeights)).size) {
+                        this.showAlert("danger", "Invalid Option");
+                    }
+
+                        
                     var votes =  this.decidePointsOptionEncrypt()
                     
                     var data = {

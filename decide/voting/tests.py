@@ -1,5 +1,6 @@
 import random
 import itertools
+from selenium.webdriver.support.ui import Select
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -450,6 +451,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
+
         options.headless = True
         options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
@@ -611,6 +613,114 @@ class QuestionsTests(StaticLiveServerTestCase):
         
 
 
+    def testOrderChoiceVotingExist(self):
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.get(self.live_server_url + "/admin/voting/question/add/")
+
+        type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
+        options = [option.text for option in type_dropdown.options]
+
+        self.assertIn("Order Choice", options)
+
+    def testOrderChoiceVotingCreate(self):
+        
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+        
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        
+        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
+        
+        type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
+        type_dropdown.select_by_visible_text("Order Choice")
+        
+        self.driver.find_element(By.ID, "id_desc").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys('Test')
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys('test1')
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys('test2')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
+        
+    def testOrderChoiceVotingStartAndStop(self):
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+        
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        
+        q = Question(desc='test question', type='order_choice')
+        q.save()
+
+
+        options_data = [
+        {'number': 1, 'option': 'test1'},
+        {'number': 2, 'option': 'test2'},
+            ]
+
+        for data in options_data:
+            option = QuestionOption(question=q, **data)
+            option.save()
+
+
+        v = Voting(name='test voting', question=q)
+        v.save()
+
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        
+        self.driver.get(self.live_server_url + "/admin/voting/voting/")
+
+        # Seleccionar la casilla de "test voting"
+        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
+        checkbox.click()
+
+        # Seleccionar la acción 'Start' del menú desplegable 'Actions'
+        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
+        actions_dropdown.select_by_visible_text('Start')
+
+        # Hacer clic en el botón 'Go'
+        self.driver.find_element(By.NAME, 'index').click()
+
+        
+        v_id = Voting.objects.latest('id').id  
+        self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
+
+        self.assertTrue(self.driver.current_url == self.live_server_url + f'/booth/{v_id}/')
+
+
+        
+        
+        
 class VotingModelTestCase(BaseTestCase):
 
     def setUp(self):
@@ -633,3 +743,4 @@ class VotingModelTestCase(BaseTestCase):
     def testExist(self):
         v=Voting.objects.get(name='Votacion')
         self.assertEquals(v.question.options.all()[0].option, "opcion 1")
+

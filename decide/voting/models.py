@@ -15,6 +15,7 @@ class Question(models.Model):
         POINTS_OPTIONS = 'points_options', 'Points Options'
         OPEN_RESPONSE = 'open_response', 'Open Response'
         YESNO_RESPONSE = 'yesno_response', 'YesNo Response'
+        ORDER_CHOICE = 'order_choice', 'Order Choice'
 
     desc = models.TextField()
     weight = models.PositiveIntegerField(blank=True, null=True)
@@ -130,8 +131,13 @@ class Voting(models.Model):
             self.do_postproc_multiple_choice()
         elif self.question.type == 'points_options':
             self.do_postproc_points_options()
+
+        elif self.question.type == 'order_choice':
+            self.do_postproc_order_choices()
+
         elif self.question.type == 'yesno_response':
             self.do_postproc_yesno()
+
         else:
             self.do_postproc()
 
@@ -328,5 +334,48 @@ class Voting(models.Model):
 
         self.postproc = postp
         self.save()
+
+        
+    def do_postproc_order_choices(self):
+        tally = self.tally
+        options = self.question.options.all()
+        votos_unitarios = []
+
+        for voto in tally:
+            voto = str(voto)[:-5]
+            votos = voto.split('63789')
+            for voto in votos:
+                votos_unitarios.append(int(voto))
+
+        dicc_opciones_valores = {}
+
+        indice = -1
+
+        for voto in votos_unitarios:
+            indice += 1
+            if indice%2==0:
+                if voto in dicc_opciones_valores:
+                    dicc_opciones_valores[voto]+=votos_unitarios[indice+1]
+                else:
+                    dicc_opciones_valores[voto]=votos_unitarios[indice+1]
+
+        opts = []
+        for opt in options:
+            if opt.number in dicc_opciones_valores:
+                votes = dicc_opciones_valores[opt.number]
+            else:
+                votes = 0
+            opts.append({
+                'option': opt.option,
+                'number': opt.number,
+                'votes': votes
+            })
+
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
+
+        self.postproc = postp
+        self.save()
+
     def __str__(self):
         return self.name
