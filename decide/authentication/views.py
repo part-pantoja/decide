@@ -111,52 +111,63 @@ class RegisterView(APIView):
         form = UserCreationForm2(request.data)
         errors = []
         if form.is_valid():
-            user = form.save()
 
-            token, _ = Token.objects.get_or_create(user=user)
+            userPost = request.POST.get('email')
+            usuarios_con_correo = User.objects.filter(email=userPost)
 
-            # Genera el token para el usuario recién registrado
+            if usuarios_con_correo.exists():
+                mensaje = "El correo seleccionado ya existe"
+                errors = form.errors
+                return render(request, 'registro/registry.html', {'form': form, 'errors': errors, 'mensaje':mensaje})
+            else:
 
-            token2 = default_token_generator.make_token(user)
 
-            #Guardar el token en el campo de first_name del user
-            user.first_name = token2
-            #Marcar como False el campo is_active
-            user.is_active = False
-            user.save()
+                user = form.save()
 
-            name = request.POST['username']
-            email = request.POST['email']
-            emailCorporativo = settings.EMAIL_HOST_USER
-            subject = 'Registro en decide'
-            message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
-            message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
-           'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
-           '/ para verificar su identidad: ' + token2
-            message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
+                token, _ = Token.objects.get_or_create(user=user)
 
-            template = render_to_string('registro/email_template.html', {
-                'name':name,
-                'email':email,
-                'emailCorporativo':emailCorporativo,
-                'message':message,
-                'message2':message2,
-                'message3':message3
-            })
+                # Genera el token para el usuario recién registrado
 
-            email = EmailMessage(
-                subject,
-                template,
-                settings.EMAIL_HOST_USER,
-                [email]
-            )
+                token2 = default_token_generator.make_token(user)
 
-            email.fail_silently = False
-            email.send()
+                #Guardar el token en el campo de first_name del user
+                user.first_name = token2
+                #Marcar como False el campo is_active
+                user.is_active = False
+                user.save()
 
-            #token, _ = Token.objects.get_or_create(user=user)
-            #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
-            return redirect('verificar_correo', username=user.username)
+                name = request.POST['username']
+                email = request.POST['email']
+                emailCorporativo = settings.EMAIL_HOST_USER
+                subject = 'Registro en decide'
+                message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
+                message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
+                'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
+                '/ para verificar su identidad: ' + token2
+                message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
+
+                template = render_to_string('registro/email_template.html', {
+                    'name':name,
+                    'email':email,
+                    'emailCorporativo':emailCorporativo,
+                    'message':message,
+                    'message2':message2,
+                    'message3':message3
+                })
+
+                email = EmailMessage(
+                    subject,
+                    template,
+                    settings.EMAIL_HOST_USER,
+                    [email]
+                )
+
+                email.fail_silently = False
+                email.send()
+
+                #token, _ = Token.objects.get_or_create(user=user)
+                #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
+                return redirect('verificar_correo', username=user.username)
         else:
             #return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
             errors = form.errors
