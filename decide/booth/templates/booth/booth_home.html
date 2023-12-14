@@ -1,30 +1,45 @@
 {%  extends "base.html" %}
 {% block title %} Votaciones en las que estás censado {% endblock %}
 {% block content %}
-<h1>Votaciones</h1>
-<h3>A continuación se muestran todas las votaciones disponibles.
-<form method="get" action="{% url 'booth:booth_home' %}">
-    <button type="submit" name="filtro" class="btn btn-primary" value="disponibles">Disponibles</button>
-    <button type="submit" name="filtro" class="btn btn-primary" value="todas">Todas las Votaciones</button>
-    <button type="submit" name="filtro" class="btn btn-primary" value="no_iniciadas">No iniciadas</button>
-</form>
-    
-    {% for voting in votings %}
-
-    
-
-    {% if voting.end_date is None %}
-        <div>
-            <h2>{{ voting.id }} - {{ voting.name }}</h2>
-            <h4><a href="{% url 'booth:booth_detail' voting.id %}">Votar</a></h4>    
-        <div>
-    {% else %}
-        <div>
-            <h2>{{ voting.id }} - {{ voting.name }}</h2>
-            <h4>No puedes votar</h4>    
-        <div>
-
+  <div class="container mt-4">
+    <h1 class="text-center mb-4">Booth</h1>
+    <p class="text-center mt-2 mb-2">Para aplicar filtros:</p>
+    <form method="get" action="{% url 'booth:booth_home' %}" class="d-flex justify-content-center">
+      <button type="submit" name="filtro" class="btn btn-primary me-3" value="disponibles">Disponibles</button>
+      <button type="submit" name="filtro" class="btn btn-primary me-3" value="todas">Todas las Votaciones</button>
+      <button type="submit" name="filtro" class="btn btn-primary" value="no_iniciadas">No iniciadas</button>
+    </form>
+    {% if filtro == "disponibles" or filtro is None %}
+      <h3 class="mt-4">Estas son las votaciones disponibles:</h3>
+    {% elif filtro == "todas" %}
+      <h3 class="mt-4">Estas son todas las votaciones:</h3>
+    {% elif filtro == "no_iniciadas" %}
+      <h3 class="mt-4">Estas son las votaciones que no están iniciadas:</h3>
     {% endif %}
-    
+
+    {% for voting in votings %}
+      <div class="card mt-4">
+        <div class="card-body">
+          <h2 class="card-title">Votación {{ forloop.counter}}</h2>
+          <h4>Nombre: {{ voting.name }}</h3>
+          <h4>ID: {{ voting.id }}</h3>
+          {% if voting.desc %}
+            <p class="card-text">{{ voting.desc }}</p>
+          {% endif %}
+          {% if voting.start_date %}
+            <p class="card-text">Fecha de inicio: {{ voting.start_date|date:"F j, Y H:i" }}</p>
+          {% else %}
+            <p class="card-text">Fecha de inicio: Aún no ha comenzado</p>
+          {% endif %}
+          <p class="card-text">Fecha de fin: {% if voting.end_date %}{{ voting.end_date|date:"F j, Y H:i" }}{% else %}Sin fecha de fin{% endif %}</p>
+
+          {% if voting.end_date is None and voting.start_date is not None or voting.start_date > voting.end_date %}
+            <a href="{% url 'booth:booth_detail' voting.id %}" class="btn btn-primary">Votar</a>
+          {% else %}
+            <p class="text-danger">No puedes votar</p>
+          {% endif %}
+        </div>
+      </div>
     {% endfor %}
+  </div>
 {% endblock %}
