@@ -126,9 +126,9 @@
                     
                     <h2>[[ question.desc ]]</h2>
                     
-                        <div v-if="voting.question.type === 'multiple_choice'">
+                        <div v-if="question.type === 'multiple_choice'">
                             <form>
-                                <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
                                     <input type="checkbox"
                                         v-model="selectedOptions"  
                                         :id="'q' + opt.number"
@@ -140,10 +140,10 @@
                                 {% trans "Vote" %}
                             </button>
                         </div>
-                        <div v-if="voting.question.type === 'points_options'">
+                        <div v-if="question.type === 'points_options'">
                             Puede repartir [[this.totalPointsToAssign]] puntos
                             <form>
-                                <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
                                     <br/>
                                     [[ opt.option ]]
                                     <input type="number"
@@ -163,8 +163,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div v-if="voting.question.type === 'single_choice'">
-                            <form v-for="opt in voting.question.options" :key="opt.number">
+                        <div v-if="question.type === 'single_choice'">
+                            <form v-for="opt in question.options" :key="opt.number">
                                 <div class="form-group">
                                     <input type="radio" v-model="selected"
                                     :id="'q' + opt.number"
@@ -178,19 +178,19 @@
                             </button>
                         </div>
                         
-                        <div v-if="voting.question.type === 'yesno_response'">
+                        <div v-if="question.type === 'yesno_response'">
                             <div class="form-group">
                                 <input type="radio" v-model="selected" 
-                                :id="'q' + voting.question.options[0].number" 
+                                :id="'q' + question.options[0].number" 
                                 name="question" 
-                                :value="voting.question.options[0].number">
+                                :value="question.options[0].number">
                                 Sí
                             </div>
                             <div class="form-group">
                                 <input type="radio" v-model="selected" 
-                                :id="'q' + voting.question.options[1].number" 
+                                :id="'q' + question.options[1].number" 
                                 name="question" 
-                                :value="voting.question.options[1].number">
+                                :value="question.options[1].number">
                                 No
                             </div>
                             <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
@@ -219,7 +219,7 @@
                     </form>
                 </div>
             
-                <button class="btn btn-primary mt-3" v-on:click="decideSendDic">
+                <button class="btn btn-primary mt-3" v-on:click="decideSendDicc">
 
                     {% trans "Vote" %}
                     </button>
@@ -439,7 +439,7 @@
                 decideSend(evt) {
                     evt.preventDefault();
 
-                    if (this.voting.question[0].type === 'open_response') {
+                    if (this.voting.questions[0].type === 'open_response') {
                         // Validar que se haya ingresado una respuesta
                         if (!this.userResponse.trim()) {
                             this.showAlert("danger", '{% trans "Please enter your response." %}');
