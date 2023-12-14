@@ -12,6 +12,8 @@ def es_administrador(user):
     return user.is_authenticated and user.is_staff
 
 def send_email(destinatario, status):
+    if destinatario == None:
+        return
     sender = EMAIL_HOST_USER
     if status == RequestStatus.ACCEPTED.value:
         subject = 'Solicitud de censo aceptada'
