@@ -283,7 +283,8 @@ class Voting(models.Model):
     def do_postproc_multiple_choice(self):
 
         tally = self.tally
-        options = self.questions[0].options.all()
+        questions_set = self.questions.all()
+        options = questions_set[0].options.all()
         votos_unitarios = []
 
         for voto in tally:
@@ -323,7 +324,6 @@ class Voting(models.Model):
             for voto in votos:
                 votos_unitarios.append(int(voto))
 
-        print("Esos son los votos unitarios", votos_unitarios)
         
         dicc_opciones_valores = {}
         indice = -1
@@ -335,7 +335,6 @@ class Voting(models.Model):
                 else:
                     dicc_opciones_valores[voto]= [votos_unitarios[indice+1]]
 
-        print("Este es el Dic", dicc_opciones_valores) 
         questions = self.questions.all()           
         opts = []
         for question in questions:
@@ -354,7 +353,6 @@ class Voting(models.Model):
                             'votes': votes
                         })
                         
-        print("Lo que pasamos: ",opts)
         data = { 'type': 'IDENTITY', 'options': opts }
         postp = mods.post('postproc', json=data)
 
@@ -364,7 +362,8 @@ class Voting(models.Model):
 
     def do_postproc_points_options(self):
         tally = self.tally
-        options = self.questions[0].options.all()
+        questions_set = self.questions.all()
+        options = questions_set[0].options.all()
         votos_unitarios = []
 
         for voto in tally:
