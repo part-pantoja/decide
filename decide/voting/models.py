@@ -405,7 +405,8 @@ class Voting(models.Model):
         
     def do_postproc_order_choices(self):
         tally = self.tally
-        options = self.question.options.all()
+        questions_set = self.questions.all()
+        options = questions_set[0].options.all()
         votos_unitarios = []
 
         for voto in tally:

@@ -178,16 +178,16 @@
                             </button>
                         </div>
                         
-                        <div v-if="voting.question.type === 'order_choice'">
+                        <div v-if="question.type === 'order_choice'">
                             <form>
-                                <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
                                     <br/>
                                     [[ opt.option ]]
                                         <input type="number"
-                                            v-model="optionWeights[opt.number]"
-                                            :id="'q' + opt.number"
-                                            :max="voting.question.options.length"
-                                            :min = 1
+                                        v-model="optionWeights[opt.number]"
+                                        :id="'q' + opt.number"
+                                        :max="question.options.length"
+                                        :min = 1
                                         />
                                     <br/>
                                 </div>
