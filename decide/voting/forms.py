@@ -1,5 +1,6 @@
 from django import forms
 from .models import Question, Voting
+from django.core.exceptions import ValidationError
 
 class VotingForm(forms.ModelForm):
     name = forms.CharField(max_length=100)
