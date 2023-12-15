@@ -46,6 +46,7 @@ jobs:
       run: |
         find . -path "/migrations/000" -type f -delete
         cd decide
+        python manage.py makemigrations
         python manage.py migrate
     - name: Lanzar tests
       run: |
