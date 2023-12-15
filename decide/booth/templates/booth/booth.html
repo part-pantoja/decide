@@ -13,6 +13,7 @@
 <div id="app-booth">
     <!-- Navbar -->
 
+
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <symbol id="check-circle-fill" viewBox="0 0 16 16">
           <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"></path>
@@ -50,7 +51,7 @@
                 <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
             </svg>
             <div class="ms-2">
-                ¡Debe iniciar sesión para poder acceder a la votación!
+                ¡Confirme su identidad para acceder a la votación!
             </div>
         </div>
         <div class="container-fluid">
@@ -92,7 +93,30 @@
                 </div>
             </div>
         </div>
-
+        <form @submit="onSubmitLogin" v-if="signup">
+            <div class="form-group mt-2">
+                <label for="username">{% trans "Username" %}</label>:
+                <input
+                    class="ml-2 form-control"
+                    id="username"
+                    type="text"
+                    v-model="form.username"
+                    autocomplete="username"
+                    required />
+            </div>
+            <div class="form-group mt-1">
+                <label for="password">{% trans "Password" %}</label>:
+                <input
+                    class = "form-control"
+                    id="password"
+                    type="password"
+                    autocomplete="current-password"
+                    v-model="form.password"
+                    required />
+            </div>
+            <button class="btn btn-primary mt-3" type="submit">{% trans "Login" %}</button>
+        </form>
+        
         <!-- Voting -->
         <div v-if="!signup">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
@@ -148,10 +172,19 @@
                     {% trans "Vote" %}
                 </button>
             </div>
+
+            <div v-if="voting.question.type === 'open_response'">
+                <label for="response">{% trans "Your Response (Numbers only)" %}</label>:
+                <textarea v-model="userResponse" id="userResponse" rows="4" cols="50"></textarea>
+                <button class="btn btn-primary mt-3" v-on:click="decideSend">
+                    {% trans "Vote" %}
+                </button>
+            </div>
+
+            
           
             
             <div v-if="voting.question.type === 'yesno_response'">
-                
                 <div class="form-group">
                     <input type="radio" v-model="selected" 
                     :id="'q' + voting.question.options[0].number" 
@@ -166,13 +199,11 @@
                     :value="voting.question.options[1].number">
                     No
                 </div>
+                <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
+                {% trans "Vote" %}
+                </button>
 
             </div>
-            
-
-            <button class="btn btn-primary mt-3" v-on:click="decideSend">
-                {% trans "Vote" %}
-            </button>
 
 
         </div>
@@ -233,10 +264,21 @@
                 }
             },
             beforeMount() {
+                //this.checkUserStatus()
                 this.init()
                 ElGamal.BITS = this.keybits;
             },
             methods: {
+                checkUserStatus() {
+                    var cookies = document.cookie.split("; ");
+                    cookies.forEach((c) => {
+                        var cs = c.split("=");
+                        if (cs[0] == 'csrftoken' && cs[1]) {
+                            this.signup = false;
+                            console.log(this.getUser())
+                        }
+                    });
+                },
                 init() {
                     var cookies = document.cookie.split("; ");
                     cookies.forEach((c) => {
@@ -306,6 +348,7 @@
                     this.successVote = false;
                 },
                 decideEncrypt() {
+                    console.log(this.selected)
                     var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
@@ -323,6 +366,12 @@
                         concatenatedString += key + "63789" + this.optionWeights[key] + "63789";
                     }
                     var bigmsg = BigInt.fromJSONObject(concatenatedString);
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
+                decideYesNoEncrypt(){
+                    console.log(this.selected)
+                    var bigmsg = BigInt.fromJSONObject(this.selected.toString());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
@@ -384,6 +433,35 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
+
+                decideYesNoSend(evt){
+
+                    evt.preventDefault();
+                    if (this.selected.length === 0) {
+                        this.showAlert("danger", '{% trans "Error: Please select at least one option." %}');
+                        return;
+                    }
+
+                    var votes = this.decideYesNoEncrypt();
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
                 
                 decideMultipleOptionSend(evt) {
                     evt.preventDefault();

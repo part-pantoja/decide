@@ -3,9 +3,32 @@ from voting.models import Voting
 from django.contrib.auth.decorators import user_passes_test, login_required
 from request.models import Request, RequestStatus
 from census.models import Census
+import smtplib
+from email.mime.text import MIMEText
+from django.contrib.auth.models import User
+from decide.settings import EMAIL_HOST_PASSWORD, EMAIL_HOST_USER
 
 def es_administrador(user):
     return user.is_authenticated and user.is_staff
+
+def send_email(destinatario, status):
+    if destinatario is None:
+        return
+    sender = EMAIL_HOST_USER
+    if status == RequestStatus.ACCEPTED.value:
+        subject = 'Solicitud de censo aceptada'
+        message = 'Su solicitud de participación en el censo ha sido aceptada'
+    else:
+        subject = 'Solicitud de censo denegada'
+        message = 'Su solicitud de participación en el censo ha sido denegada'
+    password = EMAIL_HOST_PASSWORD
+    msg = MIMEText(message)
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = destinatario
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
+        smtp_server.login(sender, password)
+        smtp_server.sendmail(sender, destinatario, msg.as_string())
 
 @login_required(login_url='login-sin-google')
 def create_request(request, votacion_id):
@@ -28,7 +51,7 @@ def create_request(request, votacion_id):
 
     Request.objects.create(voting_id=votacion.id, voter_id=user.id, status=RequestStatus.PENDING.value)
 
-    return render(request, 'request/next_page.html', {'message': 'Solicitud creada con éxito.'})
+    return render(request, 'request/next_page.html', {'message': 'Solicitud creada con éxito. Recibirás un correo electrónico con la respuesta'})
 
 @user_passes_test(es_administrador)
 def manage_request(request):
@@ -40,18 +63,20 @@ def manage_request(request):
     if request.method == 'POST':
         if 'aceptar' in request.POST:
             solicitud_id = request.POST.get('aceptar')
-            print(solicitud_id)
             solicitud = Request.objects.get(pk=solicitud_id)
             solicitud.status = RequestStatus.ACCEPTED.value
             solicitud.save()
             Census.objects.create(voting_id=solicitud.voting_id, voter_id=solicitud.voter_id)
+            usuario = User.objects.get(pk=solicitud.voter_id)
+            send_email(usuario.email, RequestStatus.ACCEPTED.value)
 
         elif 'declinar' in request.POST:
             solicitud_id = request.POST.get('declinar')
             solicitud = Request.objects.get(pk=solicitud_id)
             solicitud.status = RequestStatus.DECLINED.value
             solicitud.save()
-
+            usuario = User.objects.get(pk=solicitud.voter_id)
+            send_email(usuario.email, RequestStatus.DECLINED.value)
         return redirect('request:manage_request')
 
     return render(request, 'request/manage_request.html',
