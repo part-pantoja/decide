@@ -18,22 +18,25 @@
 
         <div class="voting container" >
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
-
+        
             <h2 v-if="!voting.start_date">Votación no comenzada</h2>
             <h2 v-else-if="!voting.end_date">Votación en curso</h2>
             <div v-else>
                 <h2 class="heading">Resultados:</h2>
 
-                <form v-if="voting.question.type === 'yesno_response'">
-                    <table class="table table-bordered table-striped" >
-                        <thead>
-                            <tr>
-                                <th>Opción</th>
-                                <th>Votos</th>
-                                <th>Porcentaje</th>
-                                <th>Ratio</th>
-                            </tr>
-                        </thead>
+                <div v-if="voting.questions.length === 1">
+
+                    
+                    <form v-if="voting.questions[0].type === 'yesno_response'">
+                        <table class="table table-bordered table-striped" >
+                            <thead>
+                                <tr>
+                                    <th>Opción</th>
+                                    <th>Votos</th>
+                                    <th>Porcentaje</th>
+                                    <th>Ratio</th>
+                                </tr>
+                            </thead>
                         <tbody>
                             <tr v-for="opt in voting.postproc" :key="opt.number">
                                 <th>[[opt.number]]    [[opt.option]]    </th>
@@ -46,7 +49,7 @@
                 </form>
 
 
-                <form v-if="voting.question.type === 'single_choice'">
+                <form v-if="voting.questions[0].type === 'single_choice'">
                 <!-- Mostrar la tabla -->
                     <table class="table table-bordered table-striped" >
                         <thead>
@@ -155,7 +158,7 @@
                     </table>
 
 
-                <div v-if="voting.question.type === 'single_choice'">
+                <div v-if="voting.questions[0].type === 'single_choice'">
 
                     <table class="table table-bordered table-striped">
                         <thead>
@@ -172,7 +175,7 @@
                         </tbody>
                     </table>
                 </form>
-                <form v-if="voting.question.type === 'open_response'">
+                <form v-if="voting.questions[0].type === 'open_response'">
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -188,7 +191,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div v-if="voting.question.type === 'multiple_choice'">
+                <div v-if="voting.questions[0].type === 'multiple_choice'">
                     <!-- Tabla de resultados -->
                     <table id="votingTable" class="table table-bordered table-striped">
                         <thead>
@@ -212,7 +215,7 @@
                         <canvas id="votingChart"></canvas>
                     </div>
                 </div>
-                <div v-if="voting.question.type === 'points_options'">
+                <div v-if="voting.questions[0].type === 'points_options'">
                     <!-- Tabla de resultados -->
                     <table id="votingTable" class="table table-bordered table-striped">
                         <thead>
@@ -230,12 +233,12 @@
                             </tr>
                         </tbody>
                     </table>
-
+                    
                     <!-- Gráfico de resultados -->
                     <div class="chart-container" style="max-width: 1400px; margin: auto;">
                         <canvas id="votingChart"></canvas>
                     </div>
-
+                    
                 </div>
 
                 <div v-if="voting.question.type === 'order_choice'">
@@ -259,8 +262,41 @@
                 
                 
                 
-
             </div>
+                
+                
+
+            <div v-else>
+
+                
+                
+                <div v-for="question in voting.questions" :key="question.desc">
+                    <h3>{{ question.desc }}</h3>
+                    
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in question.options" :key="opt.number">
+                                <td>[[ opt.option ]]</td>
+                                <td>
+                                    <template v-for="list in voting.postproc" :key="list.option">
+                                        <template v-if="list.number === opt.number && list.question_id === question.id">
+                                            [[list.votes]]
+                                        </template>
+                                    </template>
+                                </td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                
         </div>
     </div>
 {% endblock %}

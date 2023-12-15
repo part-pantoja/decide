@@ -17,6 +17,7 @@ class Question(models.Model):
         YESNO_RESPONSE = 'yesno_response', 'YesNo Response'
         ORDER_CHOICE = 'order_choice', 'Order Choice'
 
+    id = models.PositiveIntegerField(primary_key=True)
     desc = models.TextField()
     weight = models.PositiveIntegerField(blank=True, null=True)
     type = models.CharField(max_length=20, choices=TypeChoices.choices, default=TypeChoices.SINGLE_CHOICE)
@@ -37,6 +38,8 @@ class Question(models.Model):
 
     def __str__(self):
         return self.desc
+
+
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, related_name='options', on_delete=models.CASCADE)
     number = models.PositiveIntegerField(blank=True, null=True)
@@ -49,6 +52,10 @@ class QuestionOption(models.Model):
             self.number = self.question.options.count() + 2
         return super().save()
 
+    def get_question_identifier(self):
+        return f"question_{self.question.id}" if self.question and self.question.id else None
+    
+
     def __str__(self):
         return '{} ({})'.format(self.option, self.number)
 
@@ -56,7 +63,7 @@ class QuestionOption(models.Model):
 class Voting(models.Model):
     name = models.CharField(max_length=200)
     desc = models.TextField(blank=True, null=True)
-    question = models.ForeignKey(Question, related_name='voting', on_delete=models.CASCADE)
+    questions = models.ManyToManyField(Question, related_name='votings')
 
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
@@ -82,6 +89,8 @@ class Voting(models.Model):
         self.pub_key = pk
         self.save()
 
+   
+
     def get_votes(self, token=''):
         # gettings votes from store
         votes = mods.get('store', params={'voting_id': self.id}, HTTP_AUTHORIZATION='Token ' + token)
@@ -97,6 +106,8 @@ class Voting(models.Model):
             vote_list.append(votes_format)
             votes_format = []
         return vote_list
+
+    
 
     def tally_votes(self, token=''):
 
@@ -127,26 +138,33 @@ class Voting(models.Model):
         self.tally = response.json()
         self.save()
 
-        if self.question.type == 'multiple_choice':
-            self.do_postproc_multiple_choice()
-        elif self.question.type == 'points_options':
-            self.do_postproc_points_options()
+        questions_set = self.questions.all()
 
-        elif self.question.type == 'order_choice':
-            self.do_postproc_order_choices()
-
-        elif self.question.type == 'yesno_response':
-            self.do_postproc_yesno()
-
+        if questions_set.count() == 1:
+            
+            if questions_set[0].type == 'multiple_choice':
+                self.do_postproc_multiple_choice()
+            elif questions_set[0].type == 'points_options':
+                self.do_postproc_points_options()
+            elif questions_set[0].type == 'order_choice':
+              self.do_postproc_order_choices()
+            elif questions_set[0].type == 'yesno_response':
+                self.do_postproc_yesno()
+            else:
+                self.do_postproc()
         else:
-            self.do_postproc()
+            self.do_postproc_questions()
+
+    
 
     def do_postproc(self):
         tally = self.tally
-        options = self.question.options.all()
-
+        questions_set = self.questions.all()
+        question = questions_set[0]
+        options = question.options.all()
+        media = None
         opts = []
-        if self.question.type == 'open_response':
+        if question.type == 'open_response':
             # Si es una pregunta de respuesta abierta, agrupa las respuestas
             response_counts = {}
             list_votes=[]
@@ -269,7 +287,8 @@ class Voting(models.Model):
     def do_postproc_multiple_choice(self):
 
         tally = self.tally
-        options = self.question.options.all()
+        questions_set = self.questions.all()
+        options = questions_set[0].options.all()
         votos_unitarios = []
 
         for voto in tally:
@@ -293,6 +312,53 @@ class Voting(models.Model):
         data = { 'type': 'IDENTITY', 'options': opts }
         postp = mods.post('postproc', json=data)
 
+        self.postproc = postp
+        self.save()
+
+    def do_postproc_questions(self):
+        tally = self.tally
+        
+        
+        votos_unitarios = []
+
+        for voto in tally:
+            voto = str(voto)[:-5]
+            votos = voto.split('63789')
+            
+            for voto in votos:
+                votos_unitarios.append(int(voto))
+
+        
+        dicc_opciones_valores = {}
+        indice = -1
+        for voto in votos_unitarios:
+            indice += 1
+            if indice%2==0:
+                if voto in dicc_opciones_valores:
+                    dicc_opciones_valores[voto].append(votos_unitarios[indice+1])
+                else:
+                    dicc_opciones_valores[voto]= [votos_unitarios[indice+1]]
+
+        questions = self.questions.all()           
+        opts = []
+        for question in questions:
+            for key, value in dicc_opciones_valores.items():
+                if question.id==key: 
+                    options = question.options.all()
+                    for opt in options:
+                        if opt.number in value:
+                            votes = value.count(opt.number)
+                        else:
+                            votes = 0
+                        opts.append({
+                            'question_id': question.id,
+                            'option': opt.option,
+                            'number': opt.number,
+                            'votes': votes
+                        })
+                        
+        data = { 'type': 'IDENTITY', 'options': opts }
+        postp = mods.post('postproc', json=data)
 
         self.postproc = postp
         self.save()
@@ -300,7 +366,8 @@ class Voting(models.Model):
 
     def do_postproc_points_options(self):
         tally = self.tally
-        options = self.question.options.all()
+        questions_set = self.questions.all()
+        options = questions_set[0].options.all()
         votos_unitarios = []
 
         for voto in tally:

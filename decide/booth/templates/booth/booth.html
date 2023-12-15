@@ -120,105 +120,136 @@
         <!-- Voting -->
         <div v-if="!signup">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
-            <h2>[[ voting.question.desc ]]</h2>
-            <div v-if="voting.question.type === 'multiple_choice'">
-                <form>
-                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
-                        <input type="checkbox"
-                            v-model="selectedOptions"  
-                            :id="'q' + opt.number"
-                            :value="opt.number">
-                        [[ opt.option ]]
-                    </div>
-                </form>
-                <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
-                    {% trans "Vote" %}
-                </button>
-            </div>
-            <div v-if="voting.question.type === 'points_options'">
-                Puede repartir [[this.totalPointsToAssign]] puntos
-                <form>
-                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
-                        <br/>
-                        [[ opt.option ]]
-                        <input type="number"
-                            v-model="optionWeights[opt.number]"
-                            :id="'weight_q' + opt.points_given"
-                            :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
-                            :max="totalPointsToAssign + optionWeights[opt.number]"
-                            :min = 0
-                            @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
-                        <br/>
-                    </div>
+            <div v-if="voting.questions.length === 1">
 
-                </form>
-                <div v-if="totalPointsToAssign == 0 ">
-                    <button class="btn btn-primary mt-3" v-on:click="decidePointsOptionsSend">
-                        {% trans "Vote" %}
-                    </button>
-                </div>
-            </div>
-            <div v-if="voting.question.type === 'single_choice'">
-                <form v-for="opt in voting.question.options" :key="opt.number">
-                    <div class="form-group">
-                        <input type="radio" v-model="selected"
+                <div v-for="question in voting.questions" :key="question.desc">
+                    
+                    <h2>[[ question.desc ]]</h2>
+                    
+                        <div v-if="question.type === 'multiple_choice'">
+                            <form>
+                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
+                                    <input type="checkbox"
+                                        v-model="selectedOptions"  
+                                        :id="'q' + opt.number"
+                                        :value="opt.number">
+                                    [[ opt.option ]]
+                                </div>
+                            </form>
+                            <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
+                                {% trans "Vote" %}
+                            </button>
+                        </div>
+                        <div v-if="question.type === 'points_options'">
+                            Puede repartir [[this.totalPointsToAssign]] puntos
+                            <form>
+                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
+                                    <br/>
+                                    [[ opt.option ]]
+                                    <input type="number"
+                                    v-model="optionWeights[opt.number]"
+                                    :id="'weight_q' + opt.points_given"
+                                    :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
+                                    :max="totalPointsToAssign + optionWeights[opt.number]"
+                                    :min = 0
+                                    @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
+                                    <br/>
+                                </div>
+                                
+                            </form>
+                            <div v-if="totalPointsToAssign == 0 ">
+                                <button class="btn btn-primary mt-3" v-on:click="decidePointsOptionsSend">
+                                    {% trans "Vote" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-if="question.type === 'single_choice'">
+                            <form v-for="opt in question.options" :key="opt.number">
+                                <div class="form-group">
+                                    <input type="radio" v-model="selected"
                                     :id="'q' + opt.number"
                                     name="question"
                                     :value="opt.number">
-                            [[ opt.option ]]
-                    </div>
-                </form>
-                <button class="btn btn-primary mt-3" v-on:click="decideSend">
-                    {% trans "Vote" %}
-                </button>
-            </div>
-          
-            
-            <div v-if="voting.question.type === 'yesno_response'">
-                <div class="form-group">
-                    <input type="radio" v-model="selected" 
-                    :id="'q' + voting.question.options[0].number" 
-                    name="question" 
-                    :value="voting.question.options[0].number">
-                    Sí
-                </div>
-                <div class="form-group">
-                    <input type="radio" v-model="selected" 
-                    :id="'q' + voting.question.options[1].number" 
-                    name="question" 
-                    :value="voting.question.options[1].number">
-                    No
-                </div>
-                <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
-                {% trans "Vote" %}
-                </button>
+                                    [[ opt.option ]]
+                                </div>
+                            </form>
+                            <button class="btn btn-primary mt-3" v-on:click="decideSend">
+                                {% trans "Vote" %}
+                            </button>
+                        </div>
+                        
+                        <div v-if="voting.question.type === 'order_choice'">
+                            <form>
+                                <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                    <br/>
+                                    [[ opt.option ]]
+                                        <input type="number"
+                                            v-model="optionWeights[opt.number]"
+                                            :id="'q' + opt.number"
+                                            :max="voting.question.options.length"
+                                            :min = 1
+                                        />
+                                    <br/>
+                                </div>
 
-            </div>
-
-            <div v-if="voting.question.type === 'order_choice'">
-                <form>
-                    <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
-                        <br/>
-                        [[ opt.option ]]
-                            <input type="number"
-                                v-model="optionWeights[opt.number]"
-                                :id="'q' + opt.number"
-                                :max="voting.question.options.length"
-                                :min = 1
-                            />
-                        <br/>
-                    </div>
-
-                </form>
+                            </form>
                 
-                    <button class="btn btn-primary mt-3" v-on:click="decideOrderSend">
-                        {% trans "Vote" %}
-                    </button>
+                               <button class="btn btn-primary mt-3" v-on:click="decideOrderSend">
+                                  {% trans "Vote" %}
+                               </button>
             
-            </div>
+                         </div>
+                        
+                        <div v-if="question.type === 'yesno_response'">
+                            <div class="form-group">
+                                <input type="radio" v-model="selected" 
+                                :id="'q' + question.options[0].number" 
+                                name="question" 
+                                :value="question.options[0].number">
+                                Sí
+                            </div>
+                            <div class="form-group">
+                                <input type="radio" v-model="selected" 
+                                :id="'q' + question.options[1].number" 
+                                name="question" 
+                                :value="question.options[1].number">
+                                No
+                            </div>
+                            <button class="btn btn-primary mt-3" v-on:click="decideYesNoSend">
+                                {% trans "Vote" %}
+                            </button>
+                        </div>
+                </div>
+            </div>        
+                
+                                
+                                
+                                
+            <div v-else>
 
+            
+                <div v-for="question in voting.questions" :key="question.desc">
+                    <h2>[[ question.id ]] - [[ question.desc ]]</h2>
+            
+                    <form v-for="opt in question.options" :key="opt.number">
+                        <div class="form-group">
+                            <input type="radio" v-model="selectedDicc[question.id]"
+                                :id="'q' + question.desc + 'o' + opt.number"
+                                :name="'question_' + question.desc"
+                                :value="opt.number">
+                            [[ opt.option ]]
+                        </div>
+                    
+                    </form>
+                </div>
+            
+                <button class="btn btn-primary mt-3" v-on:click="decideSendDicc">
 
+                    {% trans "Vote" %}
+                    </button>       
 
+                </div>
+            </div> 
         </div>
 
     </div>
@@ -253,10 +284,14 @@
                 return {
                     voting: voting,
                     selected: "",
+
                     selectedOptions: [],
                     optionWeights: {},
-                    totalPointsToAssign: voting.question.weight,
+                    totalPointsToAssign: voting.questions[0].weight,
                     assignedWeight: 0,
+
+                    selectedDicc: {},
+
                     signup: true,
                     successVote: false,
                     alertShow: false,
@@ -264,6 +299,7 @@
                     alertLvl: "info",
                     token: null,
                     user: null,
+                    questionId: null,
                     form: {
                         username: '',
                         password: ''
@@ -281,6 +317,7 @@
                 this.init()
                 ElGamal.BITS = this.keybits;
             },
+            
             methods: {
                 checkUserStatus() {
                     var cookies = document.cookie.split("; ");
@@ -293,6 +330,7 @@
                     });
                 },
                 init() {
+                    console.log('Voting data:', this.voting);
                     var cookies = document.cookie.split("; ");
                     cookies.forEach((c) => {
                         var cs = c.split("=");
@@ -301,6 +339,12 @@
                             this.getUser();
                         }
                     });
+                },
+
+                // Función para obtener el ID de la pregunta a partir de su descripción
+                getQuestionId(questionDesc) {
+                    const question = this.voting.questions.find(q => q.desc === questionDesc);
+                    return question ? question.id : null;
                 },
                 postData(url, data) {
                     // Default options are marked with *
@@ -339,7 +383,9 @@
                         });
                 },
                 getUser(evt) {
+
                     var data = {token: this.token};
+                    
                     this.postData("{% url "gateway" "authentication" "/getuser/" %}", data)
                         .then(data => {
                             this.user = data;
@@ -366,6 +412,7 @@
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
                     return cipher;
                 },
+
                 decideMultipleOptionEncrypt() {
                     var number = parseInt(this.selectedOptions.join("63789"))
                     var bigmsg = BigInt.fromJSONObject(number.toString());
@@ -389,7 +436,7 @@
                     return cipher;
                 },
                 updateTotalPointsToAssign() { 
-                    const totalWeight = this.voting.question.weight;
+                    const totalWeight = this.voting.questions[0].weight;
                     const assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
                     this.totalPointsToAssign = totalWeight - assignedWeight
 
@@ -400,12 +447,23 @@
                 decideEncryptOpen() {
                     var bigmsg = BigInt.fromJSONObject(this.userResponse.trim());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                },
+                decideEncryptDicc() {
+                    var concatenatedString = "";
+                    
+                    for (var key in this.selectedDicc) {
+                        concatenatedString += key + "63789" + this.selectedDicc[key] + "63789";
+                    }
+                    var bigmsg = BigInt.fromJSONObject(concatenatedString);
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    console.log("Cadena de texto ", concatenatedString)
+
                     return cipher;
                 },
                 decideSend(evt) {
                     evt.preventDefault();
 
-                    if (this.voting.question.type === 'open_response') {
+                    if (this.voting.questions[0].type === 'open_response') {
                         // Validar que se haya ingresado una respuesta
                         if (!this.userResponse.trim()) {
                             this.showAlert("danger", '{% trans "Please enter your response." %}');
@@ -462,7 +520,10 @@
                         voter: this.user.id,
                         token: this.token
                     };
+
                     
+
+
                     this.postData("{% url "gateway" "store" "/" %}", data)
                         .then(data => {
                             this.successVote = true;
@@ -474,6 +535,68 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
+
+                decideSendDi(evt) {
+                    evt.preventDefault();
+                    if (!this.selectedDic) {
+                        this.showAlert("danger", "Please select an option before voting.");
+                        return;
+                    }      
+                    
+                    const votes = [];
+                    console.log(this.selectedDic)
+                    // Iterar sobre las preguntas seleccionadas
+                    for (const questionDesc in this.selectedDic) {
+                        if (this.selected.hasOwnProperty(questionDesc)) {
+                            const selectedOption = this.selected[questionDesc];
+
+                            // Obtener el ID de la pregunta
+                            const questionId = this.getQuestionId(questionDesc);
+                            console.log("questionId:", questionId);
+
+                            const v = this.decideEncrypt(selectedOption);
+                            console.log("voto:", v.alpha.toString());
+
+                            // Agregar el voto a la lista
+                            votes.push({
+                                questionId: questionId,
+                                optionNumber: selectedOption,
+                                vote: {
+                                    a: v.alpha.toString(),
+                                    b: v.beta.toString()
+                                }
+                            });
+                        }
+                    }
+                    console.log("votos:", votes);
+                    
+
+                    console.log("votingId:", this.voting.id);
+                    
+                    var v = this.decideEncrypt();
+                    var data = {
+                        votes: votes,
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
+                    
+
+
+                    
+
 
                 
                 decideMultipleOptionSend(evt) {
@@ -524,6 +647,89 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
+
+
+                decideSendDicc(evt) {
+                    evt.preventDefault();
+                    var votes =  this.decideEncryptDicc()
+                    
+                    var data = {
+                        vote: {a: votes.alpha.toString(), b: votes.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+                    console.log(this.selectedDicc)
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                decideSendDic(evt) {
+                    evt.preventDefault();
+                    if (!this.selectedDic) {
+                        this.showAlert("danger", "Please select an option before voting.");
+                        return;
+                    }      
+                    
+                    const votes = [];
+                    console.log(this.selectedDic)
+                    // Iterar sobre las preguntas seleccionadas
+                    for (const questionDesc in this.selectedDic) {
+                        if (this.selected.hasOwnProperty(questionDesc)) {
+                            const selectedOption = this.selected[questionDesc];
+
+                            // Obtener el ID de la pregunta
+                            const questionId = this.getQuestionId(questionDesc);
+                            console.log("questionId:", questionId);
+
+                            const v = this.decideEncryptDic(selectedOption);
+                            console.log("voto:", v.alpha.toString());
+
+                            // Agregar el voto a la lista
+                            votes.push({
+                                questionId: questionId,
+                                optionNumber: selectedOption,
+                                vote: {
+                                    a: v.alpha.toString(),
+                                    b: v.beta.toString()
+                                }
+                            });
+                        }
+                    }
+                    console.log("votos:", votes);
+                    
+
+                    console.log("votingId:", this.voting.id);
+                    
+                    var v = this.decideEncryptDic();
+                    var data = {
+                        votes: votes,
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    };
+
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.successVote = true;
+                            this.alertShow = false;
+                            this.showAlert("success", '{% trans "Congratulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.succesVote = false;
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+
+
                 decideOrderSend(evt) {
                     evt.preventDefault();
                     if (Object.keys(this.optionWeights).length !== new Set(Object.values(this.optionWeights)).size) {
