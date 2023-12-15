@@ -2,6 +2,7 @@ import random
 import itertools
 from selenium.webdriver.support.ui import Select
 from django.utils import timezone
+from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -25,8 +26,87 @@ from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption
-from datetime import datetime
+from datetime import timedelta
 
+class VotingHTMLTestCase(BaseTestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', is_staff=True)
+        self.q = Question(desc='test question')
+        self.q.save()
+        self.a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
+        self.a.save()
+
+        self.voting = Voting(id=100000, name='test voting', question=self.q)
+        self.voting.save()
+        self.voting.auths.add(self.a)
+        self.voting.save()
+
+        
+    def test_create_voting(self):
+
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('voting:create_voting'))
+
+        response = self.client.post(reverse('voting:create_voting'), data={
+            'name': 'Voting Name',
+            'desc': 'Voting Description',
+            'question': self.q.id,
+            'auths': [self.a.id],
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Voting.objects.filter(name='Voting Name', desc='Voting Description',question=self.q).exists())
+
+    def test_voting_details(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('voting:voting_details', args=[self.voting.id]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_start_voting(self):
+        response = self.client.post(reverse('voting:start_voting', args=[self.voting.id]))
+        self.assertEqual(response.status_code, 302)
+        self.voting.refresh_from_db()
+        self.assertIsNotNone(self.voting.start_date)
+
+    def test_stop_voting(self):
+        response = self.client.post(reverse('voting:stop_voting', args=[self.voting.id]))
+        self.assertEqual(response.status_code, 302)
+        self.voting.refresh_from_db()
+        self.assertIsNotNone(self.voting.end_date)
+
+    def test_buttons_display(self):
+        self.client.force_login(self.admin_user)
+        url = reverse('voting:voting_details', args=[self.voting.id])
+        response = self.client.get(url)
+        self.assertContains(response, '<a href="/voting/start/100000" class="btn btn-primary">Empezar</a>', html=True)
+        self.assertNotContains(response, '<a href="/voting/stop/100000" class="btn btn-primary">Finalizar</a>', html=True)
+        self.assertNotContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
+        self.assertContains(response, '<a href="/visualizer/100000/" class="btn btn-primary">Visualizar</a>', html=True)
+
+    def test_stop_button_displayed_after_start(self):
+        self.client.force_login(self.admin_user)
+        start_time = timezone.now() - timedelta(days=1)
+        self.voting.start_date = start_time
+        self.voting.save()
+                       
+        url = reverse('voting:voting_details', args=[self.voting.id])
+        response = self.client.get(url)
+        self.assertContains(response, '<a href="/voting/stop/100000" class="btn btn-primary">Finalizar</a>', html=True)
+
+    def test_tally_button_displayed_after_stop(self):
+        self.client.force_login(self.admin_user)
+        start_time = timezone.now() - timedelta(days=2)
+        self.voting.start_date = start_time
+        self.voting.save()
+
+        end_time = timezone.now()
+        self.voting.end_date = end_time
+        self.voting.save()
+                       
+        url = reverse('voting:voting_details', args=[self.voting.id])
+        response = self.client.get(url)
+        self.assertContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
 
 class VotingTestCase(BaseTestCase):
 
@@ -381,18 +461,18 @@ class LogInSuccessTests(StaticLiveServerTestCase):
 
         self.base.tearDown()
 
-    def successLogIn(self):
-        self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.cleaner.set_window_size(1280, 720)
+    def test_successLogIn(self):
+        self.driver.get(self.live_server_url+"/authentication/login-page/")
+        self.driver.set_window_size(1280, 720)
 
-        self.cleaner.find_element(By.ID, "id_username").click()
-        self.cleaner.find_element(By.ID, "id_username").send_keys("decide")
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
 
-        self.cleaner.find_element(By.ID, "id_password").click()
-        self.cleaner.find_element(By.ID, "id_password").send_keys("decide")
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("admin")
 
-        self.cleaner.find_element(By.ID, "id_password").send_keys("Keys.ENTER")
-        self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/")
+        self.driver.find_element(By.ID, "id_password").send_keys("Keys.ENTER")
+        self.assertTrue(self.driver.current_url == self.live_server_url+"/")
 
 class LogInErrorTests(StaticLiveServerTestCase):
 
@@ -426,7 +506,8 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
         self.cleaner.find_element(By.ID, "id_password").send_keys("Keys.ENTER")
 
-        self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[2]/div/div[1]/p').text == 'Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive.')
+        self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[2]/div/div[1]/p').
+        text == 'Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive.')
 
     def passwordWrongLogIn(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -440,7 +521,8 @@ class LogInErrorTests(StaticLiveServerTestCase):
 
         self.cleaner.find_element(By.ID, "id_password").send_keys("Keys.ENTER")
 
-        self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[2]/div/div[1]/p').text == 'Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive.')
+        self.assertTrue(self.cleaner.find_element_by_xpath('/html/body/div/div[2]/div/div[1]/p').
+        text == 'Please enter the correct username and password for a staff account. Note that both fields may be case-sensitive.')
 
 
 class QuestionsTests(StaticLiveServerTestCase):

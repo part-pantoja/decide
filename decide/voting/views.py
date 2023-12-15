@@ -28,6 +28,30 @@ def create_voting(request):
         
     return render(request, "voting/create_voting.html", {"form": form})
 
+@user_passes_test(lambda u: u.is_staff)
+def voting_details(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    return render(request, "voting/voting_details.html", {"voting": voting})
+
+def start_voting(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    voting.create_pubkey()
+    voting.start_date = timezone.now()
+    voting.save()
+    return redirect('voting:voting_details', voting_id=voting_id)
+
+def stop_voting(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    voting.end_date = timezone.now()
+    voting.save()
+    return redirect('voting:voting_details', voting_id=voting_id)
+
+def tally_votes(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id, end_date__lt=timezone.now())
+    token = request.session.get('auth-token', '')
+    voting.tally_votes(token)
+    return redirect('voting:voting_details', voting_id=voting_id)
+
 class VotingView(generics.ListCreateAPIView):
     
     queryset = Voting.objects.all()
