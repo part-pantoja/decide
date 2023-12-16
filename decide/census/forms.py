@@ -10,7 +10,6 @@ class CensusForm(forms.ModelForm):
         model = Census
         fields = ['voting_id', 'voter_id']
 
-    
     def clean(self):
         cleaned_data = super().clean()
         voting_id = cleaned_data.get('voting_id')
@@ -18,12 +17,12 @@ class CensusForm(forms.ModelForm):
 
         # Validar si la votación existe
         try:
-            voting = Voting.objects.get(id=voting_id)
+            Voting.objects.get(id=voting_id)
         except Voting.DoesNotExist:
             raise ValidationError('This voting does not exist.')
 
         # Validar si el usuario existe
         try:
-            user = User.objects.get(id=voter_id)
+            User.objects.get(id=voter_id)
         except User.DoesNotExist:
             raise ValidationError('This user does not exist.')

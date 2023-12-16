@@ -9,7 +9,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from django.conf import settings
 from django.urls import reverse
 
 from .models import Census
@@ -17,7 +16,6 @@ from base import mods
 from base.tests import BaseTestCase
 from datetime import datetime
 from voting.models import Question, Voting
-from mixnet.models import Auth
 
 
 class CensusTestCase(BaseTestCase):
@@ -128,7 +126,6 @@ class CreateCensus(BaseTestCase):
 
     def test_create_census_bad_voting(self):
         self.client.force_login(user=self.admin_user)
-        question=Question.objects.create(desc='test question')
         user = User.objects.create(username='testuser', password='testpassword')
 
         form_data = {
