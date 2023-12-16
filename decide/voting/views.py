@@ -15,7 +15,6 @@ from .forms import VotingForm
 
 @user_passes_test(lambda u: u.is_staff)
 def create_voting(request):
-    
     if request.method == 'POST':
         form = VotingForm(request.POST)
         if form.is_valid():
@@ -87,7 +86,7 @@ class VotingView(generics.ListCreateAPIView):
         voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'))
 
         voting.save()
-        
+        print('----------------------------------', voting)
         if questions_data:
             for question_data in questions_data:
                 
@@ -124,6 +123,7 @@ class VotingView(generics.ListCreateAPIView):
         auth, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
         auth.save()
         voting.auths.add(auth)
+        print('-------------------------------------', voting)
         return Response({}, status=status.HTTP_201_CREATED)
 
 class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
@@ -131,6 +131,7 @@ class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     permission_classes = (UserIsStaff,)
+    
     def put(self, request, voting_id, *args, **kwars):
         action = request.data.get('action')
         if not action:

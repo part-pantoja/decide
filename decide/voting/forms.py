@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 class VotingForm(forms.ModelForm):
     name = forms.CharField(max_length=100)
     desc = forms.CharField(max_length=50)
-    question = forms.ModelChoiceField(queryset=Question.objects.all())
 
     class Meta:
         model = Voting
@@ -24,6 +23,7 @@ class VotingForm(forms.ModelForm):
         # Verificar que todas las preguntas sean del tipo 'single_choice' si hay más de una pregunta
         if questions and len(questions) > 1 and not all(q.type == 'single_choice' for q in questions):
             raise ValidationError("Si hay más de una pregunta, todas deben ser del tipo 'single_choice'")
+        
 
     def save(self, commit=True):
         voting = super(VotingForm, self).save(commit=False)
