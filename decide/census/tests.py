@@ -9,11 +9,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from django.urls import reverse
 
 from .models import Census
 from base import mods
 from base.tests import BaseTestCase
 from datetime import datetime
+from voting.models import Question, Voting
 
 
 class CensusTestCase(BaseTestCase):
@@ -82,6 +84,75 @@ class CensusTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(0, Census.objects.count())
 
+class CreateCensus(BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.admin_user = User.objects.create_user(
+            username='user_test_admin',
+            password='adminpassword',
+            is_staff=True,
+        )
+
+    def tearDown(self):
+        super().tearDown()
+
+    def test_create_census_successful(self):
+        self.client.force_login(user=self.admin_user)
+        question=Question.objects.create(desc='test question')
+        voting = Voting.objects.create(name='test voting', question=question)
+        user = User.objects.create(username='testuser', password='testpassword')
+
+        form_data = {
+            'voting_id': voting.id,
+            'voter_id': user.id,
+        }
+        response = self.client.post(reverse('census:add_to_census'), form_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Census.objects.count(), 1)
+
+    def test_create_census_bad_user(self):
+        self.client.force_login(user=self.admin_user)
+        question=Question.objects.create(desc='test question')
+        voting = Voting.objects.create(name='test voting', question=question)
+
+        form_data = {
+            'voting_id': voting.id,
+            'voter_id': 100,
+        }
+        response = self.client.post(reverse('census:add_to_census'), form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Census.objects.count(), 0)
+
+    def test_create_census_bad_voting(self):
+        self.client.force_login(user=self.admin_user)
+        user = User.objects.create(username='testuser', password='testpassword')
+
+        form_data = {
+            'voting_id': 100,
+            'voter_id': user.id,
+        }
+        response = self.client.post(reverse('census:add_to_census'), form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Census.objects.count(), 0)
+    def test_create_census_existing_census(self):
+        self.client.force_login(user=self.admin_user)
+        question=Question.objects.create(desc='test question')
+        voting = Voting.objects.create(name='test voting', question=question)
+        user = User.objects.create(username='testuser', password='testpassword')
+
+        form_data = {
+            'voting_id': voting.id,
+            'voter_id': user.id,
+        }
+        response = self.client.post(reverse('census:add_to_census'), form_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Census.objects.count(), 1)
+
+        response = self.client.post(reverse('census:add_to_census'), form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Census.objects.count(), 1)
+        
 
 class CensusTest(StaticLiveServerTestCase):
     def setUp(self):
