@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage request{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <h2>PENDIENTES</h2>
+            {% for request in requests %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h2 class="card-title">SOLICITUD</h2>
+                        <h3 class="card-subtitle mb-2 text-muted">Votación: {{request.voting_id}}</h3> 
+                        <h3 class="card-subtitle mb-2 text-muted">Usuario: {{request.voter_id}}</h3>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="aceptar" value="{{ request.id }}" class="btn btn-success">Aceptar</button>
+                            <button type="submit" name="declinar" value="{{ request.id }}" class="btn btn-danger">Declinar</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-6">
+            <h2>HISTORIAL</h2>
+
+            <h3 class="text-success">ACEPTADAS</h3>
+            {% for request in requests_accepted %}
+                <div class="card mb-3 border-success">
+                    <div class="card-body">
+                        <h2 class="card-title">SOLICITUD</h2>
+                        <h3 class="card-subtitle mb-2 text-muted">Votación: {{request.voting_id}}</h3> 
+                        <h3 class="card-subtitle mb-2 text-muted">Usuario: {{request.voter_id}}</h3>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <h3 class="text-danger">RECHAZADAS</h3>
+            {% for request in requests_declined %}
+                <div class="card mb-3 border-danger">
+                    <div class="card-body">
+                        <h2 class="card-title">SOLICITUD</h2>
+                        <h3 class="card-subtitle mb-2 text-muted">Votación: {{request.voting_id}}</h3> 
+                        <h3 class="card-subtitle mb-2 text-muted">Usuario: {{request.voter_id}}</h3>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

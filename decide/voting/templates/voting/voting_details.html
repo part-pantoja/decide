@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h1><strong>Detalles de la votación</strong> {{ voting.id }}</h1>
+    <table class="table">
+        <tbody>
+            <tr>
+                <th scope="row">Nombre:</th>
+                <td>{{ voting.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Descripción:</th>
+                <td>{{ voting.desc }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Pregunta:</th>
+                <td>{{ voting.question }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Autenticación:</th>
+                <td>{{ voting.auths.get }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Fecha de inicio:</th>
+                <td>{{ voting.start_date }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Fecha de fin:</th>
+                <td>{{ voting.end_date }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Clave pública:</th>
+                <td>{{ voting.pub_key | truncatechars:30 }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Recuento:</th>
+                <td>{{ voting.tally }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Postprocesado:</th>
+                <td>{{ voting.postproc }}</td>
+            </tr>
+            <tr>
+                <th scope="row"></th>
+                <td>
+                    {% if not voting.start_date %}
+                    <a href="{% url 'voting:start_voting' voting.id %}" class="btn btn-primary">Empezar</a>
+                    {% elif not voting.end_date %}
+                    <a href="{% url 'voting:stop_voting' voting.id %}" class="btn btn-primary">Finalizar</a>
+                    {% elif voting.tally == null %}
+                    <a href="{% url 'voting:tally_votes' voting.id %}" class="btn btn-primary">Hacer recuento</a>
+                    {% endif %}
+                    <a href="{% url 'visualizer:voting_detail' voting.id %}" class="btn btn-primary">Visualizar</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
