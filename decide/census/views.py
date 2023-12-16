@@ -16,6 +16,7 @@ from rest_framework.status import (
 from base.perms import UserIsStaff
 from .models import Census
 from .forms import CensusForm
+from django.core.exceptions import ValidationError
 
 
 class CensusCreate(generics.ListCreateAPIView):
@@ -42,11 +43,15 @@ def add_to_census(request):
     if request.method == 'POST':
         form = CensusForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Usuario y votación añadidos al censo con éxito.')
-            return redirect('/')  # Redirige a la vista deseada
+            try:
+                form.save()
+                messages.success(request, 'Usuario y votación añadidos al censo con éxito.')
+                return redirect('/')  # Redirige a la vista deseada
+            except ValidationError as e:
+                messages.error(request, str(e))
         else:
-            messages.error(request, 'Error en el formulario. Por favor, corrige los errores.')
+            for error in form.errors:
+                messages.error(request, form.errors[error])
     else:
         form = CensusForm()
 
