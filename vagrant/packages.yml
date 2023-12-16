@@ -6,6 +6,7 @@
     update_cache: yes
   vars:
     packages:
+    - acl
     - git
     - postgresql
     - python3

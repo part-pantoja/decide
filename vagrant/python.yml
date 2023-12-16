@@ -3,19 +3,27 @@
   become: yes
   become_user: decide
   git:
-    repo: 'https://github.com/wadobo/decide.git'
+    repo: 'https://github.com/part-pantoja/decide.git'
     dest: /home/decide/decide
-    version: master
+    version: develop
 
 - name: Python virtualenv
   become: yes
   become_user: decide
   pip:
     name: "gunicorn"
-    virtualenv: /home/decide/venv
+    virtualenv: /home/decide/decide/venv
     virtualenv_python: python3
 
-- name: Requirements
+- name: Update pip and install requirements
+  become: yes
+  become_user: decide
+  pip:
+    name: pip
+    state: latest
+    executable: /home/decide/venv/bin/pip3
+
+- name: Install requirements
   become: yes
   become_user: decide
   pip:
