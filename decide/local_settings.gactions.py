@@ -25,6 +25,8 @@ APIS = {
     'store': BASEURL,
     'visualizer': BASEURL,
     'voting': BASEURL,
+    'home': BASEURL,
+    'request': BASEURL,
 }
 
 
