@@ -68,7 +68,7 @@
                             </tr>
                         </tbody>
                     </table>
-                        <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th>Diagrama de queso</th>
@@ -89,8 +89,8 @@
                                     </td>
                                 </tr>
                             </tbody>
-                        </table>
-                        <table class="table table-bordered table-striped">
+                    </table>
+                    <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th>Opción</th>
@@ -103,15 +103,27 @@
                                     <td>[[opt.percentage]]%</td>
                                 </tr>
                             </tbody>
-                        </table>
-                    </div>
+                    </table>
                 </form>
 
               
               
               
                 <form v-if="voting.questions[0].type === 'open_response'">
-
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Valor</th>
+                                <th>Número de votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <td>[[opt.option]]</td>
+                                <td>[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -131,7 +143,7 @@
                         </tbody>
                     </table>
 
-                </div>
+                </form>
                 <div v-if="voting.questions[0].type === 'multiple_choice'">
 
                     <!-- Tabla de resultados -->

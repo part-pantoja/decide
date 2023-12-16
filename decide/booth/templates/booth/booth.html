@@ -297,6 +297,7 @@
                     optionWeights: {},
                     totalPointsToAssign: voting.questions[0].weight,
                     assignedWeight: 0,
+                    userResponse:0,
 
                     selectedDicc: {},
 
@@ -453,8 +454,10 @@
                     this.assignedWeight = Object.values(this.optionWeights).reduce((acc, val) => acc + (val || 0), 0);
                 },
                 decideEncryptOpen() {
+                    
                     var bigmsg = BigInt.fromJSONObject(this.userResponse.trim());
                     var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
                 },
                 decideEncryptDicc() {
                     var concatenatedString = "";
@@ -501,7 +504,7 @@
                         return;
                     }
 
-                        // Realizar acciones con la respuesta del usuario
+                    // Realizar acciones con la respuesta del usuario
                     var v = this.decideEncryptOpen();
 
                     var data = {
