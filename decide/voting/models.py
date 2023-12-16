@@ -175,14 +175,15 @@ class Voting(models.Model):
             sorted_votes = sorted(list_votes)
 
             value = 0
-            num_votes = 0
+            num_votes = len(list_votes)
             variance = 0
             standard_deviation = 0
+            media=0
+            median=0
             if num_votes != 0:
                 #Cálculo de la media
                 for vote, count in response_counts.items():
                     value += vote * count
-                    num_votes += count
                 media = value/num_votes
                 # Calcular la varianza
                 variance = sum((vote - media) ** 2 * count for vote, count in response_counts.items()) / num_votes
