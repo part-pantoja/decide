@@ -1209,7 +1209,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
         self.decide_user = User.objects.create_user(username='decide', password='decide')
         self.decide_user.is_staff = True
@@ -1221,9 +1221,8 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
     def tearDown(self):
         super().tearDown()
         self.driver.quit()
-
         self.base.tearDown()
-    '''
+
     def testcreateMultipleOptionQuestionSuccess(self):
 
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -1261,6 +1260,8 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
 
         print("Exito al crear multiple option")
+        self.base.tearDown()
+    
     def test_vote_in_multiple_options_voting(self):
         q = Question(id = '10',desc='test question', type = 'multiple_choice')
         q.save()
@@ -1297,7 +1298,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "q2").click()
         self.driver.find_element(By.ID, "q3").click()
         self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
-    '''
+        self.base.tearDown()
 
     def test_tally_in_multiple_options_voting(self):
         q = Question(id = '15',desc='test question', type = 'multiple_choice')
@@ -1360,6 +1361,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, 'index').click()
         WebDriverWait(self.driver, 20)
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")
+        self.base.tearDown()
 
 class PointsOptionTestCase(StaticLiveServerTestCase):
 
