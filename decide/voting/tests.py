@@ -133,7 +133,7 @@ class VotingTestCase(BaseTestCase):
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i+1))
             opt.save()
-        v = Voting(name='test voting', question=q)
+        v = Voting(name='test voting')
         v.save()
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
@@ -365,7 +365,7 @@ class VotingTestCase(BaseTestCase):
 
     def test_create_voting_with_yesno_response(self):
         
-        q = Question(desc='test yesno question')
+        q = Question(id=82, desc='test yesno question')
         q.save()
 
         opt = QuestionOption(question=q, option='Si')
@@ -374,8 +374,10 @@ class VotingTestCase(BaseTestCase):
         opt = QuestionOption(question=q, option='No')
         opt.save()
 
-        v = Voting(name='test yesno voting', question=q)
+        v = Voting(name='test yesno voting')
         v.save()
+
+        v.questions.add(q)
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                             defaults={'me': True, 'name': 'test auth'})
@@ -384,6 +386,7 @@ class VotingTestCase(BaseTestCase):
         
         
         return v
+        print("TEST 1")
     
 
 
@@ -432,8 +435,8 @@ class VotingTestCase(BaseTestCase):
             'name': 'Example YesNo',
             'desc': 'Example YesNo',
             'type': 'YESNO_RESPONSE',
-            'question': 'Es usted mayor de edad?',
-            'question_opt': ['Si', 'No']
+            'questions': 
+                {'id': '76', 'desc': 'I want a ', 'options': ['Si', 'No'] }
         }
 
         response = self.client.post('/voting/', data, format='json')
@@ -446,8 +449,8 @@ class VotingTestCase(BaseTestCase):
         voting = self.create_voting()
 
         data = {'action': 'start'}
-        #response = self.client.post('/voting/{}/'.format(voting.pk), data, format='json')
-        #self.assertEqual(response.status_code, 401)
+        response = self.client.post('/voting/{}/'.format(voting.pk), data, format='json')
+        self.assertEqual(response.status_code, 401)
 
         # login with user no admin
         self.login(user='noadmin')
@@ -521,22 +524,18 @@ class VotingTestCase(BaseTestCase):
         self.assertEqual(response.json(), 'Voting already tallied')
 
     def test_to_string(self):
-        #Crea un objeto votacion
-        v = self.create_voting()
-        #Verifica que el nombre de la votacion es test voting
-        self.assertEquals(str(v),"test voting")
-        #Verifica que la descripcion de la pregunta sea test question
-        self.assertEquals(str(v.question),"test question")
-        #Verifica que la primera opcion es option1 (2)
-        self.assertEquals(str(v.question.options.all()[0]),"option 1 (2)")
+         v = self.create_voting()
+         self.assertEquals(str(v),"test voting")
+         self.assertEquals(str(v.questions.first()),"test question")
+         self.assertEquals(str(v.questions.first().options.all()[0]),"option 1 (2)")
 
 
     def test_yesNo_to_string(self):
         v = self.test_create_voting_with_yesno_response()
         self.assertEquals(str(v), "test yesno voting")
-        self.assertEquals(str(v.question),"test yesno question")
-        self.assertEquals(str(v.question.options.all()[0]),"Si (2)")
-        self.assertEquals(str(v.question.options.all()[1]),"No (3)")
+        self.assertEquals(str(v.questions.first()),"test yesno question")
+        self.assertEquals(str(v.questions.first().options.all()[0]), "Si (2)")
+        self.assertEquals(str(v.questions.first().options.all()[1]),"No (3)")
         
 
 
@@ -727,6 +726,8 @@ class QuestionsTests(StaticLiveServerTestCase):
         select_element = self.driver.find_element(By.ID, "id_type")
         Select(select_element).select_by_visible_text('YesNo Response') 
 
+        self.driver.find_element(By.ID, "id_id").click()
+        self.driver.find_element(By.ID, "id_id").send_keys('87')
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
@@ -783,6 +784,8 @@ class QuestionsTests(StaticLiveServerTestCase):
         select_element = self.driver.find_element(By.ID, "id_type")
         Select(select_element).select_by_visible_text('YesNo Response') 
 
+        self.driver.find_element(By.ID, "id_id").click()
+        self.driver.find_element(By.ID, "id_id").send_keys('98')
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
