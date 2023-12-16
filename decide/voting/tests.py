@@ -903,7 +903,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
             option = QuestionOption(question=q, **data)
             option.save()
 
-        v = Voting(name='test voting')
+        v = Voting(id = '233', name='test voting')
         
         v.save()
         v.questions.add(q)
@@ -974,7 +974,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
             option = QuestionOption(question=q, **data)
             option.save()
 
-        v = Voting(name='test voting')
+        v = Voting(id= '244',name='test voting')
         
         v.save()
         v.questions.add(q)
