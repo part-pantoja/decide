@@ -26,6 +26,7 @@ from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption
+from datetime import datetime
 from datetime import timedelta
 
 
@@ -108,6 +109,7 @@ class VotingHTMLTestCase(BaseTestCase):
         url = reverse('voting:voting_details', args=[self.voting.id])
         response = self.client.get(url)
         self.assertContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
+
 
         
 class VotingTestCase(BaseTestCase):
@@ -269,6 +271,7 @@ class VotingTestCase(BaseTestCase):
         self.create_voters(v)
         with self.assertRaises(OverflowError):
             self.store_vote_open_response_no_numeric(v)
+
 
     def create_voters(self, v):
         for i in range(100):
@@ -529,6 +532,10 @@ class VotingTestCase(BaseTestCase):
         response = self.client.post('/voting/{}/'.format(v.pk), data, format='json')
         self.assertEquals(response.status_code, 405)
 
+    
+
+    
+
 class LogInSuccessTests(StaticLiveServerTestCase):
 
     def setUp(self):
@@ -622,7 +629,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
 
-        options.headless = True
+        options.headless = False
         options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
@@ -801,6 +808,8 @@ class QuestionsTests(StaticLiveServerTestCase):
         options = [option.text for option in type_dropdown.options]
 
         self.assertIn("Order Choice", options)
+        
+    
 
     def testOrderChoiceVotingCreate(self):
         
@@ -820,6 +829,8 @@ class QuestionsTests(StaticLiveServerTestCase):
         type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
         type_dropdown.select_by_visible_text("Order Choice")
         
+        self.driver.find_element(By.ID, "id_id").click()
+        self.driver.find_element(By.ID, "id_id").send_keys('23')
         self.driver.find_element(By.ID, "id_desc").click()
         self.driver.find_element(By.ID, "id_desc").send_keys('Test')
         self.driver.find_element(By.ID, "id_options-0-number").click()
@@ -846,7 +857,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
         
-        q = Question(desc='test question', type='order_choice')
+        q = Question(id='24', desc='test question', type='order_choice')
         q.save()
 
 
@@ -859,10 +870,10 @@ class QuestionsTests(StaticLiveServerTestCase):
             option = QuestionOption(question=q, **data)
             option.save()
 
-
-        v = Voting(name='test voting', question=q)
+        v = Voting(name='test voting')
+        
         v.save()
-
+        v.questions.add(q)
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
         a.save()
