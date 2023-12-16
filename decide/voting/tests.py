@@ -170,6 +170,23 @@ class VotingTestCase(BaseTestCase):
             mods.post('store', json=data)
             diccionario_votos[respuesta]+=1
         return diccionario_votos
+    def store_vote_open_response_no_numeric(self,v):
+        voters = list(Census.objects.filter(voting_id=v.id))
+        voter = voters.pop()
+        respuesta = "test"
+        diccionario_votos={}
+        a, b = self.encrypt_msg(respuesta, v)
+        data = {
+                    'voting': v.id,
+                    'voter': voter.voter_id,
+                    'vote': { 'a': a, 'b': b },
+                }
+        user = self.get_or_create_user(voter.voter_id)
+        self.login(user=user.username)
+        voter = voters.pop()
+        mods.post('store', json=data)
+        diccionario_votos[respuesta]=1
+        return diccionario_votos
     def test_complete_voting_with_open_response(self):
 
         v = self.create_voting_with_open_response()
@@ -190,7 +207,17 @@ class VotingTestCase(BaseTestCase):
         for clave in dic_votos:
             self.assertEqual(tally.get(clave, 0), dic_votos.get(clave, 0))
         
+    def test_complete_voting_with_open_response_no_numeric(self):
 
+        v = self.create_voting_with_open_response()
+        v.create_pubkey()
+        v.start_date = timezone.now()
+        v.save()
+        self.assertEqual(v.question.type, Question.TypeChoices.OPEN_RESPONSE)
+
+        self.create_voters(v)
+        with self.assertRaises(OverflowError):
+            self.store_vote_open_response_no_numeric(v)
     def test_create_voting_with_blank_votes(self):
         q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
         q.save()

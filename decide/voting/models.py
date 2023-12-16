@@ -150,7 +150,7 @@ class Voting(models.Model):
             sorted_votes = sorted(list_votes)
 
             value = 0
-            num_votes = 0
+            num_votes = len(list_votes)
             variance = 0
             standard_deviation = 0
             media = 0
