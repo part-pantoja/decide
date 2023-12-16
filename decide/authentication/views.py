@@ -125,19 +125,39 @@ class RegisterView(APIView):
                 user = form.save()
 
                 token, _ = Token.objects.get_or_create(user=user)
-
-                # Genera el token para el usuario recién registrado
-
-                token2 = default_token_generator.make_token(user)
-
-                #Guardar el token en el campo de first_name del user
-                user.first_name = token2
                 #Marcar como False el campo is_active
                 user.is_active = False
                 user.save()
 
-                name = request.POST['username']
-                email = request.POST['email']
+                
+
+                #token, _ = Token.objects.get_or_create(user=user)
+                #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
+                return redirect('enviar_correo', username=user.username)
+        else:
+            #return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+            errors = form.errors
+            return render(request, 'registro/registry.html', {'form': form, 'errors': errors})
+    def get(self, request):
+        form = UserCreationForm2()
+        return render(request, 'registro/registry.html', {'form':form})
+    
+class SendEmail(APIView):
+    def enviar_correo(request, username):
+        if request.method == 'GET':
+            return render(request, 'registro/sendEmail.html', {'username':username})
+        if request.method == 'POST':
+                
+                # Genera el token para el usuario recién registrado
+                user = User.objects.filter(username=username).first()
+                token2 = default_token_generator.make_token(user)
+
+                #Guardar el token en el campo de first_name del user
+                user.first_name = token2
+                user.save()
+
+                name = user.username
+                email = user.email
                 emailCorporativo = settings.EMAIL_HOST_USER
                 subject = 'Registro en decide'
                 message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
@@ -168,14 +188,7 @@ class RegisterView(APIView):
                 #token, _ = Token.objects.get_or_create(user=user)
                 #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
                 return redirect('verificar_correo', username=user.username)
-        else:
-            #return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
-            errors = form.errors
-            return render(request, 'registro/registry.html', {'form': form, 'errors': errors})
-    def get(self, request):
-        form = UserCreationForm2()
-        return render(request, 'registro/registry.html', {'form':form})
-
+            
 
 class VerifyEmailView(APIView):
     def verificar_codigo(request, username):

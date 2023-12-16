@@ -1,6 +1,6 @@
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import GetUserView, RegisterView, WelcomeView, LoginView, GoogleView, EmailLoginView, VerifyEmailView
+from .views import GetUserView, RegisterView, WelcomeView, LoginView, GoogleView, EmailLoginView, VerifyEmailView, SendEmail
 from django.views.generic import TemplateView
 from . import views
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('login-page2/', EmailLoginView.login_correo,name='login-sin-google-email'),
     path('accounts/profile/', GoogleView.as_view(), name='incioGoogle'),
     path('verificar-correo/<str:username>/', VerifyEmailView.verificar_codigo, name='verificar_correo'),
+    path('enviar-correo/<str:username>/', SendEmail.enviar_correo, name='enviar_correo'),
 ]

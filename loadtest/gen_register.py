@@ -8,6 +8,7 @@ from locust import HttpUser, task, between
 HOST = "http://localhost:8000"
 USER = "decideuser"
 PASS = "2329"
+
 class UserRegistration(HttpUser):
     wait_time = between(3,5)
     host = HOST
