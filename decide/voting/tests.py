@@ -1204,31 +1204,58 @@ class OrderChoiceTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
         
-class VotingModelTestCase(BaseTestCase):
+class VotingQuestionsTests(BaseTestCase):
 
     def setUp(self):
-        q = Question(id= 432,desc='Descripcion')
-        q.save()
-        
-        opt1 = QuestionOption(question=q, option='opcion 1')
-        opt1.save()
-        opt1 = QuestionOption(question=q, option='opcion 2')
-        opt1.save()
+        #Load base test functionality for decide
+        self.base = BaseTestCase()
+        self.base.setUp()
 
-        self.v = Voting(name='Votacion')
-        self.v.save()
-        self.v.questions.add(q)
-        self.v.save()
+        options = webdriver.ChromeOptions()
+
+        options.headless = False
+        options.add_argument("--no-sandbox")
+        self.driver = webdriver.Chrome(options=options)
+
+        self.decide_user = User.objects.create_user(username='decide', password='decide')
+        self.decide_user.is_staff = True
+        self.decide_user.is_superuser = True
+        self.decide_user.save()
 
         super().setUp()
 
     def tearDown(self):
         super().tearDown()
-        self.v = None
-
-    def testExist(self):
-        v=Voting.objects.get(name='Votacion')
-
-        self.assertEquals(v.questions.first().options.all()[0].option, "opcion 1")
+        self.driver.quit()
 
 
+
+
+
+    def testCreateSimpleQuestions(self):
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.CSS_SELECTOR, "li > .addlink").click()
+        self.driver.find_element(By.ID, "id_id").send_keys("123")
+        self.driver.find_element(By.ID, "id_desc").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("simple")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("a")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("b")
+        self.driver.find_element(By.ID, "id_options-2-option").click()
+        self.driver.find_element(By.ID, "id_options-2-option").send_keys("c")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.CSS_SELECTOR, "li > .addlink").click()
+        self.driver.find_element(By.ID, "id_id").send_keys("124")
+        self.driver.find_element(By.ID, "id_desc").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("simple2")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("2")
+        self.driver.find_element(By.NAME, "_save").click()
