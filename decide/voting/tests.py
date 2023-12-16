@@ -706,66 +706,6 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
 
 
-    def visualVotingOrderChoice(self):
-        q = Question(id='34', desc='test order_choice question', type=Question.TypeChoices.ORDER_CHOICE)
-        q.save()
-
-        
-        options = [
-            'Option 1',
-            'Option 2',
-            'Option 3',
-            'Option 4',
-            'Option 5'
-        ]
-
-        for i, option_text in enumerate(options):
-            opt = QuestionOption(question=q, option=option_text, number=i + 1)
-            opt.save()
-
-        
-        v = Voting(name='test order_choice voting')
-        v.save()
-        v.questions.add(q)
-
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-
-        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
-        self.driver.set_window_size(1280, 720)
-        
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-        
-        self.driver.get(self.live_server_url + "/admin/voting/voting/")
-
-        # Seleccionar la casilla de "test voting"
-        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
-        checkbox.click()
-
-        # Seleccionar la acción 'Start' del menú desplegable 'Actions'
-        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
-        actions_dropdown.select_by_visible_text('Start')
-        
-        
-        self.driver.get(self.live_server_url + f'/booth/{v.id}/')
-        
-        
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-
-
     def testcreateYesNoQuestionSuccess(self):
 
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -1039,6 +979,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").click()
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").send_keys("usertest33")
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) > .btn").click()
+        
         time.sleep(2)
         self.driver.find_element(By.ID, "q1").click()
         self.driver.find_element(By.ID, "q1").send_keys("1")
@@ -1141,6 +1082,28 @@ class OrderChoiceTests(StaticLiveServerTestCase):
             options = [option.text for option in type_dropdown.options]
 
             self.assertIn("Order Choice", options)
+            
+            self.assertEqual(Question.objects.count(), 1)
+            pregunta = Question.objects.first()
+            self.assertEqual(pregunta.id, '34')
+            self.assertEqual(pregunta.desc, 'test order_choice question')
+            self.assertEqual(pregunta.type, Question.TypeChoices.ORDER_CHOICE)
+
+            # Verifica que las opciones se hayan creado
+            self.assertEqual(QuestionOption.objects.count(), 5)
+            opciones = QuestionOption.objects.all()
+            for i, option_text in enumerate(['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5']):
+                self.assertEqual(opciones[i].option, option_text)
+                self.assertEqual(opciones[i].number, i + 1)
+                self.assertEqual(opciones[i].question, pregunta)
+
+            # Verifica que la votación se haya creado
+            self.assertEqual(Voting.objects.count(), 1)
+            votacion = Voting.objects.first()
+            self.assertEqual(votacion.name, 'test order_choice voting')
+            self.assertEqual(votacion.questions.count(), 1)
+            self.assertEqual(votacion.auths.count(), 1)
+            self.assertEqual(votacion.auths.first().name, 'test auth')
             
             
     def testOrderChoiceVotingCreate(self):
