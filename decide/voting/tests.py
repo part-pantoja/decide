@@ -31,7 +31,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
         
         super().setUp()
@@ -55,7 +55,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
                                           defaults={'me': True, 'name': 'test auth'})
         a.save()
         v.auths.add(a)
-        decide_user = User.objects.create_user(username='user2', password='user2')
+        decide_user = User.objects.create_user(username='usertest', password='usertest')
         decide_user.save()
         c = Census(voter_id= decide_user.id, voting_id=v.id)
         c.save()
@@ -71,13 +71,77 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         wait = WebDriverWait(self.driver, 10)
         username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
         username_element.click()
-        self.driver.find_element(By.ID, "username").send_keys("user2")
+        self.driver.find_element(By.ID, "username").send_keys("usertest")
         self.driver.find_element(By.ID, "password").click()
-        self.driver.find_element(By.ID, "password").send_keys("user2")
+        self.driver.find_element(By.ID, "password").send_keys("usertest")
         self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
         wait.until(EC.element_to_be_clickable((By.ID, "q2")))
         self.driver.find_element(By.ID, "q2").click()
         self.driver.find_element(By.ID, "q3").click()
+        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
+        
+        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-success')))
+
+class PointsOptionTestCase(StaticLiveServerTestCase):
+
+    def setUp(self):
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        options = webdriver.ChromeOptions()
+        options.headless = False
+        self.driver = webdriver.Chrome(options=options)
+        
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+
+        self.base.tearDown()
+
+    def test_vote_in_Points_options_voting(self):
+        q = Question(desc='test question', type = 'points_options', weight = 10)
+        q.save()
+        for i in range(5):
+            opt = QuestionOption(question=q, option='option {}'.format(i+1))
+            opt.save()
+            
+        v = Voting(name='test voting', question=q)
+        v.save()
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                          defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        decide_user = User.objects.create_user(username='usertest', password='usertest')
+        decide_user.save()
+        c = Census(voter_id= decide_user.id, voting_id=v.id)
+        c.save()
+
+        v.create_pubkey()
+        v.start_date = timezone.now()
+        v.save()
+
+        self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
+        self.driver.set_window_size(1280, 720)
+        self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
+        self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
+        wait = WebDriverWait(self.driver, 10)
+        username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
+        username_element.click()
+        self.driver.find_element(By.ID, "username").send_keys("usertest")
+        self.driver.find_element(By.ID, "password").click()
+        self.driver.find_element(By.ID, "password").send_keys("usertest")
+        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
+        wait.until(EC.element_to_be_clickable((By.ID, "q2")))
+
+        self.driver.find_element(By.ID, "q2").click()
+        self.driver.find_element(By.ID, "q2").send_keys("4")
+
+        self.driver.find_element(By.ID, "q3").click()
+        self.driver.find_element(By.ID, "q3").send_keys("6")
+        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'btn-primary')))
+
         self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
         
         wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-success')))
@@ -307,8 +371,6 @@ class VotingTestCase(BaseTestCase):
         response = self.client.post('/voting/{}/'.format(v.pk), data, format='json')
         self.assertEquals(response.status_code, 405)
   
-
-
 class LogInSuccessTests(StaticLiveServerTestCase):
 
     def setUp(self):
