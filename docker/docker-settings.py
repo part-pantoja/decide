@@ -28,6 +28,8 @@ MODULES = [
     'store',
     'visualizer',
     'voting',
+    'home',
+    'request'
 ]
 
 BASEURL = 'http://10.5.0.1:8000'
