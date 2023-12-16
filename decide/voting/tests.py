@@ -1425,16 +1425,17 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, "_save").click()
         self.base.tearDown()
         print("Exito al crear points options")
-    '''
+    
     def test_vote_in_Points_options_voting(self):
-        q = Question(desc='test question', type = 'points_options', weight = 10)
+        q = Question(id = 20, desc='test question', type = 'points_options', weight = 10)
         q.save()
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i+1))
             opt.save()
             
-        v = Voting(name='test voting', question=q)
+        v = Voting( name='test voting')
         v.save()
+        v.questions.add(q)
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
         a.save()
@@ -1450,15 +1451,13 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
 
         self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
         self.driver.set_window_size(1280, 720)
-        self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
-        self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
         wait = WebDriverWait(self.driver, 10)
-        username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-        username_element.click()
-        self.driver.find_element(By.ID, "username").send_keys("usertest")
-        self.driver.find_element(By.ID, "password").click()
-        self.driver.find_element(By.ID, "password").send_keys("usertest")
-        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
+
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").click()
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").send_keys("usertest")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").click()
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").send_keys("usertest")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) > .btn").click()
         wait.until(EC.element_to_be_clickable((By.ID, "q2")))
 
         self.driver.find_element(By.ID, "q2").click()
@@ -1466,12 +1465,11 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
 
         self.driver.find_element(By.ID, "q3").click()
         self.driver.find_element(By.ID, "q3").send_keys("6")
-        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'btn-primary')))
-
-        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-        
-        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-success')))
-
+        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".mt-3")))
+        self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
+        self.base.tearDown()
+    
+    '''
     def test_tally_in_multiple_options_voting(self):
         q = Question(desc='test question', type = 'points_options', weight = 10)
         q.save()
