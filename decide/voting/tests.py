@@ -912,7 +912,6 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
-    
     def testOrderChoiceVoteUnhautorized(self):
         self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
@@ -1046,6 +1045,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "q2").click()
         self.driver.find_element(By.ID, "q2").send_keys("2")
         self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
+        time.sleep(5)
 
         
     def testOrderChoiceVotingStart(self):
@@ -1354,12 +1354,15 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
         actions_dropdown.select_by_visible_text('Stop')
         self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
+        time.sleep(10)
 
+        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
+        checkbox.click()
         actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
         actions_dropdown.select_by_visible_text('Tally')
         self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
+        time.sleep(10)
+
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")
         self.base.tearDown()
 
@@ -1370,7 +1373,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
         self.decide_user = User.objects.create_user(username='decide', password='decide')
@@ -1385,8 +1388,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
-
-    '''
+    
     def testcreatePointsOptionQuestionSuccess(self):
 
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -1467,60 +1469,51 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "q3").send_keys("6")
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".mt-3")))
         self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
+        time.sleep(5)
         self.base.tearDown()
     
-    '''
     def test_tally_in_multiple_options_voting(self):
-        q = Question(desc='test question', type = 'points_options', weight = 10)
+        q = Question(id = 25,desc='test question', type = 'points_options', weight = 10)
         q.save()
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i+1))
             opt.save()
             
-        v = Voting(name='test voting', question=q)
+        v = Voting( name='test voting')
         v.save()
+        v.questions.add(q)
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
         a.save()
         v.auths.add(a)
-        decide_user1 = User.objects.create_user(username='usertest1', password='usertest')
-        decide_user1.save()
-        decide_user2 = User.objects.create_user(username='usertest2', password='usertest')
-        decide_user2.save()
-        c1 = Census(voter_id= decide_user1.id, voting_id=v.id)
-        c2 = Census(voter_id= decide_user2.id, voting_id=v.id)
+        decide_user = User.objects.create_user(username='usertest', password='usertest')
+        decide_user.save()
+
+        c1 = Census(voting_id=v.id,voter_id= decide_user.id)
         c1.save()
-        c2.save()
 
         v.create_pubkey()
         v.start_date = timezone.now()
         v.save()
-        users = []
-        users.append(decide_user1)
-        users.append(decide_user2)
 
-        for user  in users:
-            self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
-            self.driver.set_window_size(1280, 720)
-            self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
-            self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
-            wait = WebDriverWait(self.driver, 10)
-            username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-            username_element.click()
-            self.driver.find_element(By.ID, "username").send_keys(user.username)
-            self.driver.find_element(By.ID, "password").click()
-            self.driver.find_element(By.ID, "password").send_keys("usertest")
-            self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-            wait.until(EC.element_to_be_clickable((By.ID, "q2")))
+        self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
+        self.driver.set_window_size(1280, 720)
+        wait = WebDriverWait(self.driver, 10)
 
-            self.driver.find_element(By.ID, "q2").click()
-            self.driver.find_element(By.ID, "q2").send_keys("4")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").click()
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").send_keys("usertest")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").click()
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").send_keys("usertest")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) > .btn").click()
+        wait.until(EC.element_to_be_clickable((By.ID, "q2")))
 
-            self.driver.find_element(By.ID, "q3").click()
-            self.driver.find_element(By.ID, "q3").send_keys("6")
-            wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'btn-primary')))
+        self.driver.find_element(By.ID, "q2").click()
+        self.driver.find_element(By.ID, "q2").send_keys("4")
 
-            self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
+        self.driver.find_element(By.ID, "q3").click()
+        self.driver.find_element(By.ID, "q3").send_keys("6")
+        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".mt-3")))
+        self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
         
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
@@ -1540,10 +1533,14 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
         actions_dropdown.select_by_visible_text('Stop')
         self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
+        time.sleep(10)
 
+        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
+        checkbox.click()
         actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
         actions_dropdown.select_by_visible_text('Tally')
         self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
+        time.sleep(10)
+
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")
+        self.base.tearDown()
