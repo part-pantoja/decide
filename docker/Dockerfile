@@ -11,7 +11,7 @@ RUN pip install gunicorn psycopg2 ipdb ipython
 WORKDIR /app
 
 # Clone the repository
-RUN git clone -b bugfix/docker-compose-se-queda-atascado-al-lanzarse https://github.com/part-pantoja/decide.git .
+RUN git clone -b develop https://github.com/part-pantoja/decide.git .
 
 # Install Python requirements
 RUN pip install -r requirements.txt
