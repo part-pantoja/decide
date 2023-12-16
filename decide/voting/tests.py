@@ -29,7 +29,7 @@ from voting.models import Voting, Question, QuestionOption
 from datetime import datetime
 from datetime import timedelta
 
-'''
+
 class VotingHTMLTestCase(BaseTestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', is_staff=True)
@@ -110,8 +110,7 @@ class VotingHTMLTestCase(BaseTestCase):
         response = self.client.get(url)
         self.assertContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
 
-'''
-        
+  
 class VotingTestCase(BaseTestCase):
 
     def setUp(self):
@@ -143,7 +142,7 @@ class VotingTestCase(BaseTestCase):
         v.auths.add(a)
 
         return v
-    '''
+    
     def test_create_voting_with_blank_votes(self):
             q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
             q.save()
@@ -186,7 +185,7 @@ class VotingTestCase(BaseTestCase):
                 self.fail("There still is a blank vote option")
             return v
 
-    '''
+    
     def create_voting_with_open_response(self):
         q = Question.objects.create(id=2,desc='test question with open response', type=Question.TypeChoices.OPEN_RESPONSE)
         q.save()
@@ -318,7 +317,7 @@ class VotingTestCase(BaseTestCase):
         user.set_password('qwerty')
         user.save()
         return user
-'''
+
     def store_votes(self, v):
         voters = list(Census.objects.filter(voting_id=v.id))
         voter = voters.pop()
@@ -955,4 +954,3 @@ class VotingModelTestCase(BaseTestCase):
     def testExist(self):
         v=Voting.objects.get(name='Votacion')
         self.assertEquals(v.question.options.all()[0].option, "opcion 1")
-'''
