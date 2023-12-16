@@ -148,25 +148,26 @@
 
                     <!-- Tabla de resultados -->
                     <table id="votingTable" class="table table-bordered table-striped">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th>Opción</th>
                                 <th>Puntuación</th>
-                                <th>Votos</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="opt in voting.postproc" :key="opt.number">
-                                <th>[[opt.option]]</th>
-                                <td>[[opt.postproc]]</td>
-                                <td class="text-muted">[[opt.votes]]</td>
+                                <td class="fw-bold">[[opt.option]]</td>
+                                <td class="font-italic">[[opt.postproc]]</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <!-- Gráfico de resultados -->
                     <div class="chart-container" style="max-width: 1400px; margin: auto;">
-                        <canvas id="votingChart"></canvas>
+                        <canvas id="votingChartBar"></canvas>
+                    </div>
+                     <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChartDonut"></canvas>
                     </div>
                 </div>
                 <div v-if="voting.questions[0].type === 'points_options'">
@@ -176,21 +177,22 @@
                             <tr>
                                 <th>Opción</th>
                                 <th>Puntuación</th>
-                                <th>Votos</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="opt in voting.postproc" :key="opt.number">
                                 <th>[[opt.option]]</th>
                                 <td>[[opt.postproc]]</td>
-                                <td class="text-muted">[[opt.votes]]</td>
                             </tr>
                         </tbody>
                     </table>
                     
                     <!-- Gráfico de resultados -->
                     <div class="chart-container" style="max-width: 1400px; margin: auto;">
-                        <canvas id="votingChart"></canvas>
+                        <canvas id="votingChartBar"></canvas>
+                    </div>
+                     <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChartDonut"></canvas>
                     </div>
                     
                 </div>
@@ -263,6 +265,14 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <style>
+        .chart-container {
+            max-width: 1400px;
+            margin: auto;
+            margin-bottom: 20px; /* Agregado margen inferior */
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var voting = {{ voting|safe }};
@@ -292,6 +302,7 @@
                         .slice()
                         .sort((a, b) => a.votes - b.votes)
                         .map((opt, index) => ({ ...opt, order: index + 1 }));
+
                 },
             },
                 methods: {
@@ -344,7 +355,62 @@
                             type: type,
                             data: data,
                             options: options
+                        // Gráfico de barras
+                        const ctxBar = document.getElementById('votingChartBar').getContext('2d');
+                        const chartBar = new Chart(ctxBar, {
+                            type: 'bar',
+                            data: {
+                                labels: this.voting.postproc.map(opt => opt.option),
+                                datasets: [{
+                                    label: 'Votos',
+                                    data: this.voting.postproc.map(opt => opt.votes),
+                                    backgroundColor: this.generateRandomColors(this.voting.postproc.length),
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true
+                                        }
+                                    }]
+                                }
+                            }
                         });
+
+                        // Gráfico de donut
+                        const ctxDonut = document.getElementById('votingChartDonut').getContext('2d');
+                        const chartDonut = new Chart(ctxDonut, {
+                            type: 'doughnut',
+                            data: {
+                                labels: this.voting.postproc.map(opt => opt.option),
+                                datasets: [{
+                                    label: 'Votos',
+                                    data: this.voting.postproc.map(opt => opt.votes),
+                                    backgroundColor: this.generateRandomColors(this.voting.postproc.length),
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutoutPercentage: 50,
+                            }
+                        });
+                    },
+                    generateRandomColors(count) {
+                        // Generar colores aleatorios en formato rgba
+                        const colors = [];
+                        for (let i = 0; i < count; i++) {
+                            const color = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.2)`;
+                            colors.push(color);
+                        }
+                        return colors;
                     }
                 }
             }).mount('#app-visualizer');

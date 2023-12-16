@@ -121,47 +121,41 @@
         <div v-if="!signup">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
             <div v-if="voting.questions.length === 1">
+            <h2>[[ voting.question.desc ]]</h2>
+           
 
                 <div v-for="question in voting.questions" :key="question.desc">
                     
                     <h2>[[ question.desc ]]</h2>
                     
-                        <div v-if="question.type === 'multiple_choice'">
-                            <form>
-                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
-                                    <input type="checkbox"
-                                        v-model="selectedOptions"  
-                                        :id="'q' + opt.number"
-                                        :value="opt.number">
-                                    [[ opt.option ]]
-                                </div>
-                            </form>
-                            <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
-                                {% trans "Vote" %}
-                            </button>
-                        </div>
-                        <div v-if="question.type === 'points_options'">
-                            Puede repartir [[this.totalPointsToAssign]] puntos
-                            <form>
-                                <div v-for="opt in question.options" :key="opt.number" class="form-group">
-                                    <br/>
-                                    [[ opt.option ]]
-                                    <input type="number"
-                                    v-model="optionWeights[opt.number]"
-                                    :id="'weight_q' + opt.points_given"
-                                    :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
-                                    :max="totalPointsToAssign + optionWeights[opt.number]"
-                                    :min = 0
-                                    @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
-                                    <br/>
-                                </div>
-                                
-                            </form>
-                            <div v-if="totalPointsToAssign == 0 ">
-                                <button class="btn btn-primary mt-3" v-on:click="decidePointsOptionsSend">
-                                    {% trans "Vote" %}
-                                </button>
-                            </div>
+                         <div v-if="voting.question.type === 'multiple_choice'">
+                          <form>
+                              <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                                  <input type="checkbox"
+                                      v-model="selectedOptions"  
+                                      :id="'q' + opt.number"
+                                      :value="opt.number">
+                                  [[ opt.option ]]
+                              </div>
+                          </form>
+                    <button class="btn btn-primary mt-3" v-on:click="decideMultipleOptionSend">
+                        {% trans "Vote" %}
+                    </button>
+                </div>
+                <div v-if="voting.question.type === 'points_options'">
+                    Puede repartir [[this.totalPointsToAssign]] puntos
+                    <form>
+                        <div v-for="opt in voting.question.options" :key="opt.number" class="form-group">
+                            <br/>
+                            [[ opt.option ]]
+                            <input type="number"
+                                v-model="optionWeights[opt.number]"
+                                :id="'q' + opt.number"
+                                :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
+                                :max="totalPointsToAssign + optionWeights[opt.number]"
+                                :min = 0
+                                @input="updateTotalPointsToAssign() ; updateAssignedWeight()">
+                            <br/>
                         </div>
 
                         <div v-if="question.type === 'open_response'">
