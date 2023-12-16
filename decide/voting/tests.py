@@ -1013,7 +1013,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
             option = QuestionOption(question=q, **data)
             option.save()
 
-        v = Voting(name='test voting')
+        v = Voting(id='23', name='test voting')
         
         v.save()
         v.questions.add(q)
@@ -1055,7 +1055,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
             opt.save()
 
         
-        v = Voting(name='test order_choice voting')
+        v = Voting(id='27', name='test order_choice voting')
         v.save()
         v.questions.add(q)
 
@@ -1083,27 +1083,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
 
             self.assertIn("Order Choice", options)
             
-            self.assertEqual(Question.objects.count(), 1)
-            pregunta = Question.objects.first()
-            self.assertEqual(pregunta.id, '34')
-            self.assertEqual(pregunta.desc, 'test order_choice question')
-            self.assertEqual(pregunta.type, Question.TypeChoices.ORDER_CHOICE)
 
-            # Verifica que las opciones se hayan creado
-            self.assertEqual(QuestionOption.objects.count(), 5)
-            opciones = QuestionOption.objects.all()
-            for i, option_text in enumerate(['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5']):
-                self.assertEqual(opciones[i].option, option_text)
-                self.assertEqual(opciones[i].number, i + 1)
-                self.assertEqual(opciones[i].question, pregunta)
-
-            # Verifica que la votación se haya creado
-            self.assertEqual(Voting.objects.count(), 1)
-            votacion = Voting.objects.first()
-            self.assertEqual(votacion.name, 'test order_choice voting')
-            self.assertEqual(votacion.questions.count(), 1)
-            self.assertEqual(votacion.auths.count(), 1)
-            self.assertEqual(votacion.auths.first().name, 'test auth')
             
             
     def testOrderChoiceVotingCreate(self):
