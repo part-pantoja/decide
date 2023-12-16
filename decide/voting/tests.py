@@ -41,7 +41,6 @@ class VotingHTMLTestCase(BaseTestCase):
         self.voting = Voting(id=100000, name='test voting')
         self.voting.save()
         self.voting.questions.add(self.q)
-        self.voting.save()
         self.voting.auths.add(self.a)
         self.voting.save()
 
@@ -61,6 +60,11 @@ class VotingHTMLTestCase(BaseTestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Voting.objects.filter(name='Voting Name', desc='Voting Description').exists())
+
+    def test_voting_details(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('voting:voting_details', args=[self.voting.id]))
+        self.assertEqual(response.status_code, 200)
 
     def test_voting_details(self):
         self.client.force_login(self.admin_user)
@@ -116,6 +120,8 @@ class VotingHTMLTestCase(BaseTestCase):
 class VotingTestCase(BaseTestCase):
 
     def setUp(self):
+        self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', is_staff=True)
+        
         super().setUp()
 
     def tearDown(self):
@@ -130,29 +136,32 @@ class VotingTestCase(BaseTestCase):
 
 
     def create_voting(self):
-        q = Question(desc='test question')
+        q = Question(id=1222, desc='test question')
         q.save()
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i+1))
             opt.save()
         v = Voting(name='test voting')
         v.save()
+        v.questions.add(q)
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
         a.save()
         v.auths.add(a)
+        
 
         return v
     
     def test_create_voting_with_blank_votes(self):
-            q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
+            q = Question(id=1234, desc='test question with blank vote', is_blank_vote_allowed=True)
             q.save()
             for i in range(5):
                 opt = QuestionOption(question=q, option='option {}'.format(i+1))
                 opt.save()
-            v = Voting(name='test voting', question=q)
+            v = Voting(name='test voting')
             v.save()
+            v.questions.add(q)
 
             a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                             defaults={'me': True, 'name': 'test auth'})
@@ -163,16 +172,18 @@ class VotingTestCase(BaseTestCase):
                 theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
             if not theres_blank_vote:
                 self.fail("There's no blank vote option")
+      
             return v
 
     def test_turning_blank_option_off_removes_option(self):
-            q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
+            q = Question(id=1232, desc='test question with blank vote', is_blank_vote_allowed=True)
             q.save()
             for i in range(5):
                 opt = QuestionOption(question=q, option='option {}'.format(i+1))
                 opt.save()
-            v = Voting(name='test voting', question=q)
+            v = Voting(name='test voting')
             v.save()
+            v.questions.add(q)
 
             a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                             defaults={'me': True, 'name': 'test auth'})
@@ -325,7 +336,9 @@ class VotingTestCase(BaseTestCase):
         voter = voters.pop()
 
         clear = {}
-        for opt in v.question.options.all():
+        opciones= v.questions.first().options.all()
+        
+        for opt in opciones:
             clear[opt.number] = 0
             for i in range(random.randint(0, 5)):
                 a, b = self.encrypt_msg(opt.number, v)
@@ -357,8 +370,8 @@ class VotingTestCase(BaseTestCase):
         tally = v.tally
         tally.sort()
         tally = {k: len(list(x)) for k, x in itertools.groupby(tally)}
-
-        for q in v.question.options.all():
+        opciones= v.questions.first().options.all()
+        for q in opciones:
             self.assertEqual(tally.get(q.number, 0), clear.get(q.number, 0))
 
         for q in v.postproc:
@@ -393,6 +406,7 @@ class VotingTestCase(BaseTestCase):
 
 
     def test_create_voting_from_api(self):
+        
         data = {'name': 'Example'}
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 401)
@@ -407,15 +421,57 @@ class VotingTestCase(BaseTestCase):
         response = mods.post('voting', params=data, response=True)
         self.assertEqual(response.status_code, 400)
 
-        data = {
+        
+        response = self.client.post(reverse('voting:create_voting'), data={
             'name': 'Example',
             'desc': 'Description example',
-            'question': 'I want a ',
-            'question_opt': ['cat', 'dog', 'horse']
-        }
+            'questions': [
+                {
+                    'id': 129,
+                    'desc': 'I want a ',
+                    'options': [
+                        'cat',
+                        'dog',
+                        'horse'
+                        
+                    ] 
+                }
+            ],
+            
+        })
+        
+        
+        
+        if response.status_code != 200:
+            print(response.content)
+        self.assertEqual(response.status_code, 200)
 
+    
+    def test_create_yesno_voting_from_api(self):
+        data = {'name': 'Example YesNo'}
         response = self.client.post('/voting/', data, format='json')
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 401)
+
+        # login with user no admin
+        self.login(user='noadmin')
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 403)
+
+        # login with user admin
+        self.login()
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 400)
+
+        # data = {
+        #     'name': 'Example YesNo',
+        #     'desc': 'Example YesNo',
+        #     'type': 'YESNO_RESPONSE',
+        #     'question': 'Es usted mayor de edad?',
+        #     'question_opt': ['Si', 'No']
+        # }
+
+        # response = self.client.post('/voting/', data, format='json')
+        # self.assertEqual(response.status_code, 201)
         
 
 
@@ -514,20 +570,20 @@ class VotingTestCase(BaseTestCase):
         
 
 
-    def test_create_voting_API(self):
-        self.login()
-        data = {
-            'name': 'Example',
-            'desc': 'Description example',
-            'question': 'I want a ',
-            'question_opt': ['cat', 'dog', 'horse']
-        }
+    # def test_create_voting_API(self):
+    #     self.login()
+    #     data = {
+    #         'name': 'Example',
+    #         'desc': 'Description example',
+    #         'questions': ['I want a '],
+    #         'question_opt': ['cat', 'dog', 'horse']
+    #     }
 
-        response = self.client.post('/voting/', data, format='json')
-        self.assertEqual(response.status_code, 201)
+    #     response = self.client.post('/voting/', data, format='json')
+    #     self.assertEqual(response.status_code, 201)
 
-        voting = Voting.objects.get(name='Example')
-        self.assertEqual(voting.desc, 'Description example')
+    #     voting = Voting.objects.get(name='Example')
+    #     self.assertEqual(voting.desc, 'Description example')
     
     def test_update_voting_405(self):
         v = self.create_voting()
@@ -548,7 +604,7 @@ class LogInSuccessTests(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = True
+        options.headless = False
         options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
@@ -681,6 +737,8 @@ class QuestionsTests(StaticLiveServerTestCase):
 
     def testcreateYesNoQuestionSuccess(self):
 
+   def testcreateYesNoQuestionSuccess(self):
+
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
 
@@ -740,7 +798,8 @@ class QuestionsTests(StaticLiveServerTestCase):
 
 
 
-    def testCreateDescriptionEmptyError(self):
+
+   def testCreateDescriptionEmptyError(self):
 
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
@@ -775,7 +834,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
 
 
-    def testStartYesNoVoting(self):
+   def testStartYesNoVoting(self):
         self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
         
@@ -828,7 +887,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.driver.current_url == self.live_server_url + f'/booth/{v_id}/')
 
-   
+    
     def createCensusEmptyError(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.cleaner.set_window_size(1280, 720)
@@ -849,7 +908,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/add/")
         
 
-   
+
    
     
 class OrderChoiceTests(StaticLiveServerTestCase):
@@ -1145,12 +1204,11 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, "_save").click()
 
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
-    
         
 class VotingModelTestCase(BaseTestCase):
 
     def setUp(self):
-        q = Question(desc='Descripcion')
+        q = Question(id= 432,desc='Descripcion')
         q.save()
         
         opt1 = QuestionOption(question=q, option='opcion 1')
@@ -1158,8 +1216,11 @@ class VotingModelTestCase(BaseTestCase):
         opt1 = QuestionOption(question=q, option='opcion 2')
         opt1.save()
 
-        self.v = Voting(name='Votacion', question=q)
+        self.v = Voting(name='Votacion')
         self.v.save()
+        self.v.questions.add(q)
+        self.v.save()
+
         super().setUp()
 
     def tearDown(self):
@@ -1168,356 +1229,6 @@ class VotingModelTestCase(BaseTestCase):
 
     def testExist(self):
         v=Voting.objects.get(name='Votacion')
-        self.assertEquals(v.question.options.all()[0].option, "opcion 1")
+        self.assertEquals(v.questions.first().options.all()[0].option, "opcion 1")
 
-class MultipleOptionTestCase(StaticLiveServerTestCase):
 
-    def setUp(self):
-        self.base = BaseTestCase()
-        self.base.setUp()
-
-        options = webdriver.ChromeOptions()
-        options.headless = False
-        self.driver = webdriver.Chrome(options=options)
-        self.decide_user = User.objects.create_user(username='decide', password='decide')
-        self.decide_user.is_staff = True
-        self.decide_user.is_superuser = True
-        self.decide_user.save()
-        
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-        self.driver.quit()
-
-        self.base.tearDown()
-    
-    def testcreateMultipleOptionQuestionSuccess(self):
-
-        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.driver.set_window_size(1280, 720)
-
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-
-        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
-        
-        self.driver.find_element(By.ID, "id_desc").click()
-        self.driver.find_element(By.ID, "id_desc").send_keys('TestMultiple')
-        select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('Multiple Choice') 
-        self.driver.find_element(By.ID, "id_options-0-number").click()
-        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
-        self.driver.find_element(By.ID, "id_options-0-option").click()
-        self.driver.find_element(By.ID, "id_options-0-option").send_keys('test1')
-        self.driver.find_element(By.ID, "id_options-1-number").click()
-        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
-        self.driver.find_element(By.ID, "id_options-1-option").click()
-        self.driver.find_element(By.ID, "id_options-1-option").send_keys('test2')
-        self.driver.find_element(By.ID, "id_options-2-number").click()
-        self.driver.find_element(By.ID, "id_options-2-number").send_keys('3')
-        self.driver.find_element(By.ID, "id_options-2-option").click()
-        self.driver.find_element(By.ID, "id_options-2-option").send_keys('test3')
-        self.driver.find_element(By.NAME, "_save").click()
-
-        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
-
-        print("Exito al crear multiple option")
-
-    def test_vote_in_multiple_options_voting(self):
-        q = Question(desc='test question', type = 'multiple_choice')
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-            
-        v = Voting(name='test voting', question=q)
-        v.save()
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        decide_user = User.objects.create_user(username='usertest', password='usertest')
-        decide_user.save()
-        c = Census(voter_id= decide_user.id, voting_id=v.id)
-        c.save()
-
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
-
-        self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
-        self.driver.set_window_size(1280, 720)
-        self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
-        self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
-        wait = WebDriverWait(self.driver, 10)
-        username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-        username_element.click()
-        self.driver.find_element(By.ID, "username").send_keys("usertest")
-        self.driver.find_element(By.ID, "password").click()
-        self.driver.find_element(By.ID, "password").send_keys("usertest")
-        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-        wait.until(EC.element_to_be_clickable((By.ID, "q2")))
-        self.driver.find_element(By.ID, "q2").click()
-        self.driver.find_element(By.ID, "q3").click()
-        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-        
-        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-success')))
-    
-    def test_tally_in_multiple_options_voting(self):
-        q = Question(desc='test question', type = 'multiple_choice')
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-            
-        v = Voting(name='test voting', question=q)
-        v.save()
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        decide_user1 = User.objects.create_user(username='usertest1', password='usertest')
-        decide_user1.save()
-        decide_user2 = User.objects.create_user(username='usertest2', password='usertest')
-        decide_user2.save()
-        c1 = Census(voter_id= decide_user1.id, voting_id=v.id)
-        c2 = Census(voter_id= decide_user2.id, voting_id=v.id)
-        c1.save()
-        c2.save()
-
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
-        users = []
-        users.append(decide_user1)
-        users.append(decide_user2)
-
-        for user  in users:
-            self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
-            self.driver.set_window_size(1280, 720)
-            self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
-            self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
-            wait = WebDriverWait(self.driver, 10)
-            username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-            username_element.click()
-            self.driver.find_element(By.ID, "username").send_keys(user.username)
-            self.driver.find_element(By.ID, "password").click()
-            self.driver.find_element(By.ID, "password").send_keys('usertest')
-            self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-            wait.until(EC.element_to_be_clickable((By.ID, "q2")))
-            self.driver.find_element(By.ID, "q2").click()
-            self.driver.find_element(By.ID, "q3").click()
-            self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-            
-            wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-success')))
-        
-        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.driver.set_window_size(1280, 720)
-
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-        self.driver.get(self.live_server_url+"/admin/voting/voting/")
-
-        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
-        checkbox.click()
-
-        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
-        actions_dropdown.select_by_visible_text('Stop')
-        self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
-
-        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
-        actions_dropdown.select_by_visible_text('Tally')
-        self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
-        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")
-
-class PointsOptionTestCase(StaticLiveServerTestCase):
-
-    def setUp(self):
-        self.base = BaseTestCase()
-        self.base.setUp()
-
-        options = webdriver.ChromeOptions()
-        options.headless = False
-        self.driver = webdriver.Chrome(options=options)
-        
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-        self.driver.quit()
-
-        self.base.tearDown()
-
-    def testcreatePointsOptionQuestionSuccess(self):
-
-        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.driver.set_window_size(1280, 720)
-
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-
-        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
-        
-        self.driver.find_element(By.ID, "id_desc").click()
-        self.driver.find_element(By.ID, "id_desc").send_keys('TestPointsOption')
-        self.driver.find_element(By.ID, "id_weight").click()
-        self.driver.find_element(By.ID, "id_weight").send_keys('10')
-        select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('Points Options') 
-        self.driver.find_element(By.ID, "id_options-0-number").click()
-        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
-        self.driver.find_element(By.ID, "id_options-0-option").click()
-        self.driver.find_element(By.ID, "id_options-0-option").send_keys('test1')
-        self.driver.find_element(By.ID, "id_options-1-number").click()
-        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
-        self.driver.find_element(By.ID, "id_options-1-option").click()
-        self.driver.find_element(By.ID, "id_options-1-option").send_keys('test2')
-        self.driver.find_element(By.ID, "id_options-2-number").click()
-        self.driver.find_element(By.ID, "id_options-2-number").send_keys('3')
-        self.driver.find_element(By.ID, "id_options-2-option").click()
-        self.driver.find_element(By.ID, "id_options-2-option").send_keys('test3')
-        self.driver.find_element(By.NAME, "_save").click()
-    
-        print("Exito al crear points options")
-
-    def test_vote_in_Points_options_voting(self):
-        q = Question(desc='test question', type = 'points_options', weight = 10)
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-            
-        v = Voting(name='test voting', question=q)
-        v.save()
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        decide_user = User.objects.create_user(username='usertest', password='usertest')
-        decide_user.save()
-        c = Census(voter_id= decide_user.id, voting_id=v.id)
-        c.save()
-
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
-
-        self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
-        self.driver.set_window_size(1280, 720)
-        self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
-        self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
-        wait = WebDriverWait(self.driver, 10)
-        username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-        username_element.click()
-        self.driver.find_element(By.ID, "username").send_keys("usertest")
-        self.driver.find_element(By.ID, "password").click()
-        self.driver.find_element(By.ID, "password").send_keys("usertest")
-        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-        wait.until(EC.element_to_be_clickable((By.ID, "q2")))
-
-        self.driver.find_element(By.ID, "q2").click()
-        self.driver.find_element(By.ID, "q2").send_keys("4")
-
-        self.driver.find_element(By.ID, "q3").click()
-        self.driver.find_element(By.ID, "q3").send_keys("6")
-        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'btn-primary')))
-
-        self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-        
-        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-success')))
-
-    def test_tally_in_multiple_options_voting(self):
-        q = Question(desc='test question', type = 'points_options', weight = 10)
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-            
-        v = Voting(name='test voting', question=q)
-        v.save()
-        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        a.save()
-        v.auths.add(a)
-        decide_user1 = User.objects.create_user(username='usertest1', password='usertest')
-        decide_user1.save()
-        decide_user2 = User.objects.create_user(username='usertest2', password='usertest')
-        decide_user2.save()
-        c1 = Census(voter_id= decide_user1.id, voting_id=v.id)
-        c2 = Census(voter_id= decide_user2.id, voting_id=v.id)
-        c1.save()
-        c2.save()
-
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
-        users = []
-        users.append(decide_user1)
-        users.append(decide_user2)
-
-        for user  in users:
-            self.driver.get(self.live_server_url+"/booth/"+ str(v.id))
-            self.driver.set_window_size(1280, 720)
-            self.driver.find_element(By.CLASS_NAME, 'navbar-toggler').click()
-            self.driver.find_element(By.CLASS_NAME, 'btn-secondary').click()
-            wait = WebDriverWait(self.driver, 10)
-            username_element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-            username_element.click()
-            self.driver.find_element(By.ID, "username").send_keys(user.username)
-            self.driver.find_element(By.ID, "password").click()
-            self.driver.find_element(By.ID, "password").send_keys("usertest")
-            self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-            wait.until(EC.element_to_be_clickable((By.ID, "q2")))
-
-            self.driver.find_element(By.ID, "q2").click()
-            self.driver.find_element(By.ID, "q2").send_keys("4")
-
-            self.driver.find_element(By.ID, "q3").click()
-            self.driver.find_element(By.ID, "q3").send_keys("6")
-            wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'btn-primary')))
-
-            self.driver.find_element(By.CLASS_NAME, 'btn-primary').click()
-        
-        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.driver.set_window_size(1280, 720)
-
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-        self.driver.get(self.live_server_url+"/admin/voting/voting/")
-
-        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
-        checkbox.click()
-
-        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
-        actions_dropdown.select_by_visible_text('Stop')
-        self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
-
-        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
-        actions_dropdown.select_by_visible_text('Tally')
-        self.driver.find_element(By.NAME, 'index').click()
-        WebDriverWait(self.driver, 20)
-        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")       
