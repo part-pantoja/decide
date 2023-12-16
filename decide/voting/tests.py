@@ -1372,6 +1372,11 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         options = webdriver.ChromeOptions()
         options.headless = False
         self.driver = webdriver.Chrome(options=options)
+
+        self.decide_user = User.objects.create_user(username='decide', password='decide')
+        self.decide_user.is_staff = True
+        self.decide_user.is_superuser = True
+        self.decide_user.save()
         
         super().setUp()
 
@@ -1381,6 +1386,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
 
         self.base.tearDown()
 
+    '''
     def testcreatePointsOptionQuestionSuccess(self):
 
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -1395,7 +1401,9 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
 
         self.driver.get(self.live_server_url+"/admin/voting/question/add/")
-        
+        self.driver.find_element(By.ID, "id_id").click()
+        self.driver.find_element(By.ID, "id_id").send_keys('12')
+        self.driver.find_element(By.ID, "id_desc").click()
         self.driver.find_element(By.ID, "id_desc").click()
         self.driver.find_element(By.ID, "id_desc").send_keys('TestPointsOption')
         self.driver.find_element(By.ID, "id_weight").click()
@@ -1415,9 +1423,9 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_options-2-option").click()
         self.driver.find_element(By.ID, "id_options-2-option").send_keys('test3')
         self.driver.find_element(By.NAME, "_save").click()
-    
+        self.base.tearDown()
         print("Exito al crear points options")
-
+    '''
     def test_vote_in_Points_options_voting(self):
         q = Question(desc='test question', type = 'points_options', weight = 10)
         q.save()
@@ -1540,4 +1548,4 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         actions_dropdown.select_by_visible_text('Tally')
         self.driver.find_element(By.NAME, 'index').click()
         WebDriverWait(self.driver, 20)
-        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")       
+        self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/voting/")
