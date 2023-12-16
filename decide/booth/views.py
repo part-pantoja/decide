@@ -21,6 +21,7 @@ class BoothView(TemplateView):
             r = mods.get('voting', params={'id': vid})
             # Casting numbers to string to manage in javascript with BigInt
             # and avoid problems with js and big number conversion
+            print("BoothView: Voting data =", r)
             for k, v in r[0]['pub_key'].items():
                 r[0]['pub_key'][k] = str(v)
 
@@ -38,15 +39,18 @@ def booth_home(request):
 
     if user_votings:
         filtro = request.GET.get('filtro', None)
-        if filtro == 'sin_fecha_fin' or None:
+        if filtro == 'disponibles':
             for voting in user_votings:
                 for v in voting:
-                    if not v['end_date']:
+                    if v['start_date'] and not v['end_date']:
                         votos.append(v)
-        elif filtro == 'sin_fechas':
+                    elif v['start_date'] and v['end_date']:
+                        if v['start_date'] > v['end_date']:
+                            votos.append(v)
+        elif filtro == 'no_iniciadas':
             for voting in user_votings:
                 for v in voting:
-                    if not v['end_date'] and not v['start_date']:
+                    if not v['start_date']:
                         votos.append(v)
         else:
             for voting in user_votings:
