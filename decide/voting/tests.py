@@ -26,6 +26,7 @@ from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption
+from store.models import Vote
 from datetime import datetime
 from datetime import timedelta
 
@@ -932,6 +933,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
+
     
     # def testOrderChoiceVoteUnhautorized(self):
     #     self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
@@ -1067,6 +1069,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "q2").click()
         self.driver.find_element(By.ID, "q2").send_keys("2")
         self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
+        time.sleep(5)
 
         
     def testOrderChoiceVotingStart(self):
@@ -1225,6 +1228,7 @@ class VotingModelTestCase(BaseTestCase):
 
     def testExist(self):
         v=Voting.objects.get(name='Votacion')
+
         self.assertEquals(v.questions.first().options.all()[0].option, "opcion 1")
 
 

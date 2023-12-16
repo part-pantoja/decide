@@ -148,7 +148,7 @@
                                     [[ opt.option ]]
                                     <input type="number"
                                     v-model="optionWeights[opt.number]"
-                                    :id="'weight_q' + opt.points_given"
+                                    :id="'q' + opt.number"
                                     :placeholder="'Weight (' + totalPointsToAssign + ' available)'"
                                     :max="totalPointsToAssign + optionWeights[opt.number]"
                                     :min = 0
