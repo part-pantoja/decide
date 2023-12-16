@@ -159,7 +159,6 @@ class Voting(models.Model):
                 #Cálculo de la media
                 for vote, count in response_counts.items():
                     value += vote * count
-                    num_votes += count
                 media = value/num_votes
                 # Calcular la varianza
                 variance = sum((vote - media) ** 2 * count for vote, count in response_counts.items()) / num_votes
