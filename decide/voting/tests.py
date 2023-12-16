@@ -28,6 +28,7 @@ from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption
 from datetime import timedelta
 
+
 class VotingHTMLTestCase(BaseTestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', is_staff=True)
@@ -108,6 +109,7 @@ class VotingHTMLTestCase(BaseTestCase):
         response = self.client.get(url)
         self.assertContains(response, '<a href="/voting/tally/100000" class="btn btn-primary">Hacer recuento</a>', html=True)
 
+        
 class VotingTestCase(BaseTestCase):
 
     def setUp(self):
@@ -122,6 +124,7 @@ class VotingTestCase(BaseTestCase):
         k = MixCrypt(bits=bits)
         k.k = ElGamal.construct((p, g, y))
         return k.encrypt(msg)
+
 
     def create_voting(self):
         q = Question(desc='test question')
@@ -181,6 +184,110 @@ class VotingTestCase(BaseTestCase):
                 self.fail("There still is a blank vote option")
             return v
 
+
+    def create_voting_with_open_response(self):
+        q = Question.objects.create(id=2,desc='test question with open response', type=Question.TypeChoices.OPEN_RESPONSE)
+        q.save()
+        v = Voting.objects.create(name='test voting')
+        v.questions.add(q)
+        v.save()
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                          defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+
+        return v
+    
+    def store_votes_open_response(self,v):
+        voters = list(Census.objects.filter(voting_id=v.id))
+        voter = voters.pop()
+        respuestas = [3,3,4,1,5,1]
+        diccionario_votos={}
+        for respuesta in respuestas:
+            if respuesta not in diccionario_votos:
+                diccionario_votos[respuesta]=0
+            a, b = self.encrypt_msg(respuesta, v)
+            data = {
+                        'voting': v.id,
+                        'voter': voter.voter_id,
+                        'vote': { 'a': a, 'b': b },
+                    }
+            user = self.get_or_create_user(voter.voter_id)
+            self.login(user=user.username)
+            voter = voters.pop()
+            mods.post('store', json=data)
+            diccionario_votos[respuesta]+=1
+        return diccionario_votos
+    def store_vote_open_response_no_numeric(self,v):
+        voters = list(Census.objects.filter(voting_id=v.id))
+        voter = voters.pop()
+        respuesta = "test"
+        diccionario_votos={}
+        a, b = self.encrypt_msg(respuesta, v)
+        data = {
+                    'voting': v.id,
+                    'voter': voter.voter_id,
+                    'vote': { 'a': a, 'b': b },
+                }
+        user = self.get_or_create_user(voter.voter_id)
+        self.login(user=user.username)
+        voter = voters.pop()
+        mods.post('store', json=data)
+        diccionario_votos[respuesta]=1
+        return diccionario_votos
+    def test_complete_voting_with_open_response(self):
+
+        v = self.create_voting_with_open_response()
+        v.create_pubkey()
+        v.start_date = timezone.now()
+        v.save()
+        pregunta=v.questions.first()
+        self.assertEqual(pregunta.type, Question.TypeChoices.OPEN_RESPONSE)
+
+        self.create_voters(v)
+        dic_votos=self.store_votes_open_response(v)
+        self.login()  # set token
+        v.tally_votes(self.token)
+
+        tally = v.tally
+        tally.sort()
+        tally = {k: len(list(x)) for k, x in itertools.groupby(tally)}
+        
+        for clave in dic_votos:
+            self.assertEqual(tally.get(clave, 0), dic_votos.get(clave, 0))
+
+    def test_complete_voting_with_open_response_no_numeric(self):
+
+        v = self.create_voting_with_open_response()
+        v.create_pubkey()
+        v.start_date = timezone.now()
+        v.save()
+        pregunta=v.questions.first()
+        self.assertEqual(pregunta.type, Question.TypeChoices.OPEN_RESPONSE)
+
+        self.create_voters(v)
+        with self.assertRaises(OverflowError):
+            self.store_vote_open_response_no_numeric(v)
+    def test_create_voting_with_blank_votes(self):
+        q = Question(desc='test question with blank vote', is_blank_vote_allowed=True)
+        q.save()
+        for i in range(5):
+            opt = QuestionOption(question=q, option='option {}'.format(i+1))
+            opt.save()
+        v = Voting(name='test voting', question=q)
+        v.save()
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                        defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        theres_blank_vote = False
+        for questionoption in q.options.all():
+            theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
+        if not theres_blank_vote:
+            self.fail("There's no blank vote option")
+        return v
 
     def create_voters(self, v):
         for i in range(100):
@@ -825,4 +932,3 @@ class VotingModelTestCase(BaseTestCase):
     def testExist(self):
         v=Voting.objects.get(name='Votacion')
         self.assertEquals(v.question.options.all()[0].option, "opcion 1")
-
