@@ -32,6 +32,7 @@ def voting_details(request, voting_id):
     voting = get_object_or_404(Voting, pk=voting_id)
     return render(request, "voting/voting_details.html", {"voting": voting})
 
+@user_passes_test(lambda u: u.is_staff)
 def start_voting(request, voting_id):
     voting = get_object_or_404(Voting, pk=voting_id)
     voting.create_pubkey()
@@ -39,12 +40,14 @@ def start_voting(request, voting_id):
     voting.save()
     return redirect('voting:voting_details', voting_id=voting_id)
 
+@user_passes_test(lambda u: u.is_staff)
 def stop_voting(request, voting_id):
     voting = get_object_or_404(Voting, pk=voting_id)
     voting.end_date = timezone.now()
     voting.save()
     return redirect('voting:voting_details', voting_id=voting_id)
 
+@user_passes_test(lambda u: u.is_staff)
 def tally_votes(request, voting_id):
     voting = get_object_or_404(Voting, pk=voting_id, end_date__lt=timezone.now())
     token = request.session.get('auth-token', '')

@@ -45,12 +45,14 @@
             <tr>
                 <th scope="row"></th>
                 <td>
-                    {% if not voting.start_date %}
-                    <a href="{% url 'voting:start_voting' voting.id %}" class="btn btn-primary">Empezar</a>
-                    {% elif not voting.end_date %}
-                    <a href="{% url 'voting:stop_voting' voting.id %}" class="btn btn-primary">Finalizar</a>
-                    {% elif voting.tally == null %}
-                    <a href="{% url 'voting:tally_votes' voting.id %}" class="btn btn-primary">Hacer recuento</a>
+                    {% if user.is_staff %}
+                        {% if not voting.start_date %}
+                        <a href="{% url 'voting:start_voting' voting.id %}" class="btn btn-primary">Empezar</a>
+                        {% elif not voting.end_date %}
+                        <a href="{% url 'voting:stop_voting' voting.id %}" class="btn btn-primary">Finalizar</a>
+                        {% elif voting.tally == null %}
+                        <a href="{% url 'voting:tally_votes' voting.id %}" class="btn btn-primary">Hacer recuento</a>
+                        {% endif %}
                     {% endif %}
                     <a href="{% url 'visualizer:voting_detail' voting.id %}" class="btn btn-primary">Visualizar</a>
                 </td>
