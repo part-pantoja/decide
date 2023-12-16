@@ -15,7 +15,6 @@ from .forms import VotingForm
 
 @user_passes_test(lambda u: u.is_staff)
 def create_voting(request):
-    
     if request.method == 'POST':
         form = VotingForm(request.POST)
         if form.is_valid():
