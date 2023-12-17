@@ -1,14 +1,10 @@
 from django.db import models
 from base.models import BigBigField
-from voting.models import Question
-
 
 class Vote(models.Model):
     voting_id = models.PositiveIntegerField()
     voter_id = models.PositiveIntegerField()
-    
     question_id = models.PositiveIntegerField(null=True)
-
     a = BigBigField()
     b = BigBigField()
 

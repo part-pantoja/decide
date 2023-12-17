@@ -29,12 +29,12 @@ class VisualizerTestCase(StaticLiveServerTestCase):
 
 
     def test_simpleVisualizer(self):        
-            q = Question(id= 123, desc='test question')
-            q.save()
-            v = Voting(name='test voting')
-            v.save()
-            v.questions.add(q)
-            v.save()
-            response =self.driver.get(f'{self.live_server_url}/visualizer/{v.pk}/')
-            vState= self.driver.find_element(By.TAG_NAME,"h2").text
-            self.assertTrue(vState, "Votación no comenzada")
+        q = Question(id= 123, desc='test question')
+        q.save()
+        v = Voting(name='test voting')
+        v.save()
+        v.questions.add(q)
+        v.save()
+        response =self.driver.get(f'{self.live_server_url}/visualizer/{v.pk}/')
+        vState= self.driver.find_element(By.TAG_NAME,"h2").text
+        self.assertTrue(vState, "Votación no comenzada")

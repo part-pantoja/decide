@@ -54,7 +54,6 @@ class QuestionOption(models.Model):
     def get_question_identifier(self):
         return f"question_{self.question.id}" if self.question and self.question.id else None
     
-
     def __str__(self):
         return '{} ({})'.format(self.option, self.number)
 
@@ -344,11 +343,11 @@ class Voting(models.Model):
                 else:
                     dicc_opciones_valores[voto]= [votos_unitarios[indice+1]]
 
-        questions = self.questions.all()           
+        questions = self.questions.all()  
         opts = []
         for question in questions:
             for key, value in dicc_opciones_valores.items():
-                if question.id==key: 
+                if question.id==key:
                     options = question.options.all()
                     for opt in options:
                         if opt.number in value:

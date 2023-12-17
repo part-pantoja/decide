@@ -1,6 +1,5 @@
 import random
 import itertools
-from selenium.webdriver.support.ui import Select
 from django.utils import timezone
 from django.urls import reverse
 from django.conf import settings
@@ -17,7 +16,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 
-from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 
@@ -28,7 +26,6 @@ from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption
-from store.models import Vote
 from datetime import datetime
 from datetime import timedelta
 
@@ -63,11 +60,6 @@ class VotingHTMLTestCase(BaseTestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Voting.objects.filter(name='Voting Name', desc='Voting Description').exists())
-
-    def test_voting_details(self):
-        self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('voting:voting_details', args=[self.voting.id]))
-        self.assertEqual(response.status_code, 200)
 
     def test_voting_details(self):
         self.client.force_login(self.admin_user)
@@ -162,49 +154,49 @@ class VotingTestCase(BaseTestCase):
         return v
 
     def test_create_voting_with_blank_votes(self):
-            q = Question(id=1234, desc='test question with blank vote', is_blank_vote_allowed=True)
-            q.save()
-            for i in range(5):
-                opt = QuestionOption(question=q, option='option {}'.format(i+1))
-                opt.save()
-            v = Voting(name='test voting')
-            v.save()
-            v.questions.add(q)
+        q = Question(id=1234, desc='test question with blank vote', is_blank_vote_allowed=True)
+        q.save()
+        for i in range(5):
+            opt = QuestionOption(question=q, option='option {}'.format(i+1))
+            opt.save()
+        v = Voting(name='test voting')
+        v.save()
+        v.questions.add(q)
 
-            a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                             defaults={'me': True, 'name': 'test auth'})
-            a.save()
-            v.auths.add(a)
-            theres_blank_vote = False
-            for questionoption in q.options.all():
-                theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
-            if not theres_blank_vote:
-                self.fail("There's no blank vote option")
+        a.save()
+        v.auths.add(a)
+        theres_blank_vote = False
+        for questionoption in q.options.all():
+            theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
+        if not theres_blank_vote:
+            self.fail("There's no blank vote option")
       
-            return v
+        return v
 
     def test_turning_blank_option_off_removes_option(self):
-            q = Question(id=1232, desc='test question with blank vote', is_blank_vote_allowed=True)
-            q.save()
-            for i in range(5):
-                opt = QuestionOption(question=q, option='option {}'.format(i+1))
-                opt.save()
-            v = Voting(name='test voting')
-            v.save()
-            v.questions.add(q)
+        q = Question(id=1232, desc='test question with blank vote', is_blank_vote_allowed=True)
+        q.save()
+        for i in range(5):
+            opt = QuestionOption(question=q, option='option {}'.format(i+1))
+            opt.save()
+        v = Voting(name='test voting')
+        v.save()
+        v.questions.add(q)
 
-            a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                            defaults={'me': True, 'name': 'test auth'})
-            a.save()
-            v.auths.add(a)
-            q.is_blank_vote_allowed = False
-            q.save()
-            theres_blank_vote = False
-            for questionoption in q.options.all():
-                theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
-            if theres_blank_vote:
-                self.fail("There still is a blank vote option")
-            return v
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                        defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        q.is_blank_vote_allowed = False
+        q.save()
+        theres_blank_vote = False
+        for questionoption in q.options.all():
+            theres_blank_vote = theres_blank_vote or questionoption.option == "Blank Vote"
+        if theres_blank_vote:
+            self.fail("There still is a blank vote option")
+        return v
 
     
     def create_voting_with_open_response(self):
@@ -448,22 +440,15 @@ class VotingTestCase(BaseTestCase):
                         'dog',
                         'horse'
                         
-                    ] 
+                    ]
                 }
             ],
             
         })
         
-        
-        
         if response.status_code != 200:
             print(response.content)
         self.assertEqual(response.status_code, 200)
-
-    
-        
-
-
 
     def test_update_voting(self):
         voting = self.create_voting()
@@ -544,13 +529,10 @@ class VotingTestCase(BaseTestCase):
         self.assertEqual(response.json(), 'Voting already tallied')
 
     def test_to_string(self):
-         v = self.create_voting()
-         self.assertEquals(str(v),"test voting")
-         self.assertEquals(str(v.questions.first()),"test question")
+        v = self.create_voting()
+        self.assertEquals(str(v),"test voting")
+        self.assertEquals(str(v.questions.first()),"test question")
          
-
-
-
     def test_yesNo_to_string(self):
         v = self.test_create_voting_with_yesno_response()
         self.assertEquals(str(v), "test yesno voting")
@@ -696,7 +678,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.base.tearDown()
 
-    def createQuestionSuccess(self):   
+    def createQuestionSuccess(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.cleaner.set_window_size(1280, 720)
 
@@ -745,7 +727,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         select_element = self.driver.find_element(By.ID, "id_type")
 
-        Select(select_element).select_by_visible_text('YesNo Response') 
+        Select(select_element).select_by_visible_text('YesNo Response')
 
         self.driver.find_element(By.ID, "id_id").click()
         self.driver.find_element(By.ID, "id_id").send_keys('87')
@@ -875,8 +857,8 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, 'index').click()
 
         
-        v_id = Voting.objects.latest('id').id  
-        self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
+        v_id = Voting.objects.latest('id').id
+        self.driver.get(self.live_server_url + f'/booth/{v_id}/')
 
         self.assertTrue(self.driver.current_url == self.live_server_url + f'/booth/{v_id}/')
 
@@ -1048,7 +1030,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
 
         v.create_pubkey()
         v.start_date = timezone.now()
-        v.save
+        v.save()
 
         
         v_id = Voting.objects.latest('id').id  
@@ -1109,7 +1091,7 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         
         v.create_pubkey()
         v.start_date = timezone.now()
-        v.save
+        v.save()
 
         
         v_id = Voting.objects.latest('id').id  
@@ -1146,26 +1128,25 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         v.auths.add(a)
         
         return v
-        self.tearDown
         
     def testOrderChoiceVotingExist(self):
-            self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
-            self.driver.set_window_size(1280, 720)
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
 
-            self.driver.find_element(By.ID, "id_username").click()
-            self.driver.find_element(By.ID, "id_username").send_keys("decide")
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
 
-            self.driver.find_element(By.ID, "id_password").click()
-            self.driver.find_element(By.ID, "id_password").send_keys("decide")
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
 
-            self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
 
-            self.driver.get(self.live_server_url + "/admin/voting/question/add/")
+        self.driver.get(self.live_server_url + "/admin/voting/question/add/")
 
-            type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
-            options = [option.text for option in type_dropdown.options]
+        type_dropdown = Select(self.driver.find_element(By.ID, "id_type"))
+        options = [option.text for option in type_dropdown.options]
 
-            self.assertIn("Order Choice", options)
+        self.assertIn("Order Choice", options)
             
 
             

@@ -28,8 +28,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         self.decide_user.is_staff = True
         self.decide_user.is_superuser = True
-        self.decide_user.save()
-        
+        self.decide_user.save() 
         super().setUp()
 
     def tearDown(self):
@@ -158,7 +157,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_desc").click()
         self.driver.find_element(By.ID, "id_desc").send_keys('TestMultiple')
         select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('Multiple Choice') 
+        Select(select_element).select_by_visible_text('Multiple Choice')
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
@@ -326,7 +325,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_weight").click()
         self.driver.find_element(By.ID, "id_weight").send_keys('10')
         select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('Points Options') 
+        Select(select_element).select_by_visible_text('Points Options')
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
