@@ -100,9 +100,7 @@ class Voting(models.Model):
             vote_list.append(votes_format)
             votes_format = []
         return vote_list
-
     
-
     def tally_votes(self, token=''):
 
         votes = self.get_votes(token)

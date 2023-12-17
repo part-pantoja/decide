@@ -180,7 +180,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i+1))
             opt.save()
-            
         v = Voting( name='test voting')
         v.save()
         v.questions.add(q)
