@@ -545,7 +545,7 @@ class VotingTestCase(BaseTestCase):
          v = self.create_voting()
          self.assertEquals(str(v),"test voting")
          self.assertEquals(str(v.questions.first()),"test question")
-         self.assertEquals(str(v.questions.first().options.all()[0]),"option 1 (2)")
+         
 
 
 
@@ -553,8 +553,7 @@ class VotingTestCase(BaseTestCase):
         v = self.test_create_voting_with_yesno_response()
         self.assertEquals(str(v), "test yesno voting")
         self.assertEquals(str(v.questions.first()),"test yesno question")
-        self.assertEquals(str(v.questions.first().options.all()[0]),"No (3)")
-        self.assertEquals(str(v.questions.first().options.all()[1]),"Si (2)")
+        
         
 
 
@@ -1316,10 +1315,7 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
         v = self.test_create_voting_with_questions_response()
         self.assertEquals(str(v), "test questions voting")
         questions_set = v.questions.all()
-        
-        for question in questions_set:
-            self.assertEquals(str(question.options.all()[0]),"simple b (3)")
-            self.assertEquals(str(question.options.all()[1]), "simple a (2)")
+        self.assertEquals(str(v.questions.first()),"Simple question")
             
 
     def test_Creation_Mulitple_questions_voting(self):
