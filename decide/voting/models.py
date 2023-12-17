@@ -284,7 +284,7 @@ class Voting(models.Model):
         data = { 'type': 'IDENTITY', 'options': opts }
         postp = mods.post('postproc', json=data)
 
-        print(opts)
+        
 
         self.postproc = postp
         self.save()

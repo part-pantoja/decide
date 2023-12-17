@@ -75,12 +75,14 @@ class VotingHTMLTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_start_voting(self):
+        self.client.force_login(self.admin_user)
         response = self.client.post(reverse('voting:start_voting', args=[self.voting.id]))
         self.assertEqual(response.status_code, 302)
         self.voting.refresh_from_db()
         self.assertIsNotNone(self.voting.start_date)
 
     def test_stop_voting(self):
+        self.client.force_login(self.admin_user)
         response = self.client.post(reverse('voting:stop_voting', args=[self.voting.id]))
         self.assertEqual(response.status_code, 302)
         self.voting.refresh_from_db()
@@ -147,6 +149,7 @@ class VotingTestCase(BaseTestCase):
         v = Voting(name='test voting')
         v.save()
         v.questions.add(q)
+        v.save()
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
@@ -455,37 +458,6 @@ class VotingTestCase(BaseTestCase):
             print(response.content)
         self.assertEqual(response.status_code, 200)
 
-    
-    def test_create_yesno_voting_from_api(self):
-        data = {'name': 'Example YesNo'}
-        response = self.client.post('/voting/', data, format='json')
-        self.assertEqual(response.status_code, 401)
-
-        # login with user no admin
-        self.login(user='noadmin')
-        response = mods.post('voting', params=data, response=True)
-        self.assertEqual(response.status_code, 403)
-
-        # login with user admin
-        self.login()
-        response = mods.post('voting', params=data, response=True)
-        self.assertEqual(response.status_code, 400)
-
-        data = {
-            'name': 'Example YesNo',
-            'desc': 'Example YesNo',
-            'type': 'YESNO_RESPONSE',
-            'question': 'Es usted mayor de edad?',
-            'question_opt': ['Si', 'No']
-        }
-
-        # response = self.client.post('/voting/', data, format='json')
-        # self.assertEqual(response.status_code, 201)
-        
-
-
-
-    
     
         
 

@@ -96,7 +96,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
 
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
 
-        print("Exito al crear multiple option")
+        
         self.base.tearDown()
     
     def test_vote_in_multiple_options_voting(self):
@@ -262,7 +262,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_options-2-option").send_keys('test3')
         self.driver.find_element(By.NAME, "_save").click()
         self.base.tearDown()
-        print("Exito al crear points options")
+        
     
     def test_vote_in_Points_options_voting(self):
         q = Question(id = 20, desc='test question', type = 'points_options', weight = 10)
