@@ -23,7 +23,6 @@ class VotingForm(forms.ModelForm):
         # Verificar que todas las preguntas sean del tipo 'single_choice' si hay más de una pregunta
         if questions and len(questions) > 1 and not all(q.type == 'single_choice' for q in questions):
             raise ValidationError("Si hay más de una pregunta, todas deben ser del tipo 'single_choice'")
-        
     def save(self, commit=True):
         voting = super(VotingForm, self).save(commit=False)
         if commit:

@@ -145,8 +145,6 @@ class SendEmail(APIView):
         if request.method == 'GET':
             return render(request, 'registro/sendEmail.html', {'username':username})
         if request.method == 'POST':
-
-   
             user = User.objects.filter(username=username).first()
             token2 = default_token_generator.make_token(user)
             #Guardar el token en el campo de first_name del user

@@ -787,7 +787,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.driver.get(self.live_server_url+"/admin/voting/question/add/")
 
         select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('YesNo Response') 
+        Select(select_element).select_by_visible_text('YesNo Response')
 
 
         self.driver.find_element(By.ID, "id_id").click()
@@ -967,8 +967,8 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, 'index').click()
 
         
-        v_id = Voting.objects.latest('id').id  
-        self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
+        v_id = Voting.objects.latest('id').id
+        self.driver.get(self.live_server_url + f'/booth/{v_id}/')
 
     
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").click()
@@ -1297,7 +1297,6 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
     def test_questions_to_string(self):
         v = self.test_create_voting_with_questions_response()
         self.assertEquals(str(v), "test questions voting")
-        questions_set = v.questions.all()
         self.assertEquals(str(v.questions.first()),"Simple question")
             
 

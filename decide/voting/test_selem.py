@@ -28,7 +28,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         self.decide_user.is_staff = True
         self.decide_user.is_superuser = True
-        self.decide_user.save() 
+        self.decide_user.save()
         super().setUp()
 
     def tearDown(self):
@@ -173,8 +173,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, "_save").click()
 
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
-
-        
         self.base.tearDown()
     
     def test_vote_in_multiple_options_voting(self):
