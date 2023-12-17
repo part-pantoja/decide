@@ -1,6 +1,10 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
+from django.contrib.auth.models import User
 from base.tests import BaseTestCase
+from voting.models import Voting, Question, QuestionOption
+from census.models import Census
+from django.utils import timezone
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -14,15 +18,17 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.add_argument("--no-sandbox")
-        options.headless = True
+        options.headless = False
         self.driver = webdriver.Chrome(options=options)
         super().setUp()
+
     def tearDown(self):
         super().tearDown()
         self.driver.quit()
 
         self.base.tearDown()
     def test_booth_home_no_voting(self):
+        usuario = User.objects.create_user(username='andres', password='Cuaderno1')
         self.driver.get(self.live_server_url)
         self.driver.set_window_size(1061, 904)
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
@@ -40,6 +46,24 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
             self.assertTrue(True)
 
     def test_booth_home_with_votings(self):
+        usuario = User.objects.create_user(username='andres', password='Cuaderno1')
+        q = Question(desc='test question')
+        q.save()
+        q = Question(desc='test question')
+        q.save()
+
+        for i in range(5):
+            opt = QuestionOption(question=q, option='option {}'.format(i))
+            opt.save()
+
+        v1 = Voting(name='test voting 1', question=q)
+        v1.save()
+        v1.start_date = timezone.now()
+        v1.save()
+
+        censo1 = Census(voting_id=v1.id, voter_id=usuario.id)
+        censo1.save()
+
         self.driver.get(self.live_server_url)
         self.driver.set_window_size(1480, 904)
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
