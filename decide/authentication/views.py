@@ -138,48 +138,50 @@ class RegisterView(APIView):
             return render(request, 'registro/registry.html', {'form': form, 'errors': errors})
     def get(self, request):
         form = UserCreationForm2()
-        return render(request, 'registro/registry.html', {'form':form})   
+        return render(request, 'registro/registry.html', {'form':form})
+    
 class SendEmail(APIView):
     def enviar_correo(request, username):
         if request.method == 'GET':
             return render(request, 'registro/sendEmail.html', {'username':username})
         if request.method == 'POST':
-                user = User.objects.filter(username=username).first()
-                token2 = default_token_generator.make_token(user)
-                #Guardar el token en el campo de first_name del user
-                user.first_name = token2
-                user.save()
-                name = user.username
-                email = user.email
-                emailCorporativo = settings.EMAIL_HOST_USER
-                subject = 'Registro en decide'
-                message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
-                message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
-                'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
-                '/ para verificar su identidad: ' + token2
-                message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
-                template = render_to_string('registro/email_template.html', {
-                    'name':name,
-                    'email':email,
-                    'emailCorporativo':emailCorporativo,
-                    'message':message,
-                    'message2':message2,
-                    'message3':message3
-                })
-
-                email = EmailMessage(
-                    subject,
-                    template,
-                    settings.EMAIL_HOST_USER,
-                    [email]
-                )
-
-                email.fail_silently = False
-                email.send()
-                #token, _ = Token.objects.get_or_create(user=user)
-                #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
-                return redirect('verificar_correo', username=user.username)
             
+                
+            user = User.objects.filter(username=username).first()
+            token2 = default_token_generator.make_token(user)
+            #Guardar el token en el campo de first_name del user
+            user.first_name = token2
+            user.save()
+            name = user.username
+            email = user.email
+            emailCorporativo = settings.EMAIL_HOST_USER
+            subject = 'Registro en decide'
+            message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
+            message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
+            'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
+            '/ para verificar su identidad: ' + token2
+            message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
+            template = render_to_string('registro/email_template.html', {
+                'name':name,
+                'email':email,
+                'emailCorporativo':emailCorporativo,
+                'message':message,
+                'message2':message2,
+                'message3':message3
+            })
+
+            email = EmailMessage(
+                subject,
+                template,
+                settings.EMAIL_HOST_USER,
+                [email]
+            )
+
+            email.fail_silently = False
+            email.send()
+            #token, _ = Token.objects.get_or_create(user=user)
+            #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
+            return redirect('verificar_correo', username=user.username)
 
 class VerifyEmailView(APIView):
     def verificar_codigo(request, username):

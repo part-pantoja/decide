@@ -33,7 +33,6 @@ class BaseTestCase(APITestCase):
 
         user2 = User.objects.filter(username=user).get()
         token, _ = Token.objects.get_or_create(user=user2)
-        
         self.token = token.key
         
         self.assertTrue(self.token)
