@@ -64,4 +64,3 @@ jobs:
         PA_API_TOKEN: ${{ secrets.PA_API_TOKEN }}
       run: |
         git pull
-        touch /var/www/decidepantoja_pythonanywhere_com_wsgi.py
