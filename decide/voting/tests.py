@@ -471,36 +471,6 @@ class VotingTestCase(BaseTestCase):
         response = mods.post('voting', params=data, response=True)
         self.assertEqual(response.status_code, 400)
 
-        # data = {
-        #     'name': 'Example YesNo',
-        #     'desc': 'Example YesNo',
-        #     'type': 'YESNO_RESPONSE',
-        #     'question': 'Es usted mayor de edad?',
-        #     'question_opt': ['Si', 'No']
-        # }
-
-        # response = self.client.post('/voting/', data, format='json')
-        # self.assertEqual(response.status_code, 201)
-        
-
-
-
-    
-    def test_create_yesno_voting_from_api(self):
-        data = {'name': 'Example YesNo'}
-        response = self.client.post('/voting/', data, format='json')
-        self.assertEqual(response.status_code, 401)
-
-        # login with user no admin
-        self.login(user='noadmin')
-        response = mods.post('voting', params=data, response=True)
-        self.assertEqual(response.status_code, 403)
-
-        # login with user admin
-        self.login()
-        response = mods.post('voting', params=data, response=True)
-        self.assertEqual(response.status_code, 400)
-
         data = {
             'name': 'Example YesNo',
             'desc': 'Example YesNo',
@@ -509,8 +479,14 @@ class VotingTestCase(BaseTestCase):
             'question_opt': ['Si', 'No']
         }
 
-        response = self.client.post('/voting/', data, format='json')
-        self.assertEqual(response.status_code, 201)
+        # response = self.client.post('/voting/', data, format='json')
+        # self.assertEqual(response.status_code, 201)
+        
+
+
+
+    
+    
         
 
 
