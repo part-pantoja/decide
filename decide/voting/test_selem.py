@@ -174,7 +174,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
 
         self.assertTrue(self.driver.current_url == self.live_server_url+"/admin/voting/question/")
         self.base.tearDown()
-    
     def test_vote_in_multiple_options_voting(self):
         q = Question(id = '10',desc='test question', type = 'multiple_choice')
         q.save()

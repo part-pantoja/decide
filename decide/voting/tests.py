@@ -1031,12 +1031,8 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         v.create_pubkey()
         v.start_date = timezone.now()
         v.save()
-
-        
-        v_id = Voting.objects.latest('id').id  
-        self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
-
-    
+        v_id = Voting.objects.latest('id').id
+        self.driver.get(self.live_server_url + f'/booth/{v_id}/')
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").click()
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").send_keys("usertest33")
         self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").click()
