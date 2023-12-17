@@ -139,21 +139,18 @@ class RegisterView(APIView):
     def get(self, request):
         form = UserCreationForm2()
         return render(request, 'registro/registry.html', {'form':form})
-    
+       
 class SendEmail(APIView):
     def enviar_correo(request, username):
         if request.method == 'GET':
             return render(request, 'registro/sendEmail.html', {'username':username})
         if request.method == 'POST':
-                
                 # Genera el token para el usuario recién registrado
                 user = User.objects.filter(username=username).first()
                 token2 = default_token_generator.make_token(user)
-
                 #Guardar el token en el campo de first_name del user
                 user.first_name = token2
                 user.save()
-
                 name = user.username
                 email = user.email
                 emailCorporativo = settings.EMAIL_HOST_USER
@@ -163,7 +160,6 @@ class SendEmail(APIView):
                 'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
                 '/ para verificar su identidad: ' + token2
                 message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
-
                 template = render_to_string('registro/email_template.html', {
                     'name':name,
                     'email':email,
@@ -182,7 +178,6 @@ class SendEmail(APIView):
 
                 email.fail_silently = False
                 email.send()
-
                 #token, _ = Token.objects.get_or_create(user=user)
                 #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)
                 return redirect('verificar_correo', username=user.username)

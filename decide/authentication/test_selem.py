@@ -27,37 +27,24 @@ class AdminTestCase(StaticLiveServerTestCase):
     def test_registroConCuentaExistente(self):
         self.driver.get(self.live_server_url+"/authentication/register")
         time.sleep(5)
-
         #Busca los campos que rellenar 
         self.driver.find_element(By.ID, 'id_username').send_keys("pruebaCorreo")
         self.driver.find_element(By.ID, 'id_email').send_keys("pruebaCorreo@correo.us")
         self.driver.find_element(By.ID, 'id_password1').send_keys("estoesunaprueba1")
         self.driver.find_element(By.ID, 'id_password2').send_keys("estoesunaprueba1")
-
         #Boton de registrar
         self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
-
         #Redirigir a la pagina inicial
         self.driver.get(f'{self.live_server_url}/')
-
         #Redirigir a la pagina de registro
         self.driver.get(self.live_server_url+"/authentication/register")
-        
         #Busca los campos que rellenar 
         self.driver.find_element(By.ID, 'id_username').send_keys("pruebaCorreo1")
         self.driver.find_element(By.ID, 'id_email').send_keys("pruebaCorreo@correo.us")
         self.driver.find_element(By.ID, 'id_password1').send_keys("estoesunaprueba2")
         self.driver.find_element(By.ID, 'id_password2').send_keys("estoesunaprueba2")
-
         #Boton de registrar
         self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
-
         time.sleep(5)
-
         sigueEnRegistro = self.driver.find_element(By.ID, 'id_username').is_displayed()
-
         self.assertEqual(sigueEnRegistro, True)
-
-
-
-        

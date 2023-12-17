@@ -1,13 +1,9 @@
-import json
-import requests
-import random
+import secrets
 import string
 from locust import HttpUser, task, between
 
 
 HOST = "http://localhost:8000"
-USER = "decideuser"
-PASS = "2329"
 
 class UserRegistration(HttpUser):
     wait_time = between(3,5)
@@ -38,5 +34,5 @@ class UserRegistration(HttpUser):
 
 
     def generate_random_string(self,lenght=8):
-        letters = string.ascii_letters
-        return ''.join(random.choice(letters) for _ in range(lenght))
+        letters = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(letters) for _ in range(lenght))
