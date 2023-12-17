@@ -690,7 +690,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
 
-        options.headless = False
+        options.headless = True
         options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
@@ -868,7 +868,7 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.driver.get(self.live_server_url + "/admin/voting/voting/")
 
         # Seleccionar la casilla de "test voting"
-        checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
+        checkbox = self.driver.find_element(By.CLASS_NAME, "action-select")
         checkbox.click()
 
         # Seleccionar la acción 'Start' del menú desplegable 'Actions'
@@ -935,75 +935,75 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         self.base.tearDown()
 
     
-    # def testOrderChoiceVoteUnhautorized(self):
-    #     self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
-    #     self.driver.set_window_size(1280, 720)
+    def testOrderChoiceVoteUnhautorized(self):
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
         
-    #     self.driver.find_element(By.ID, "id_username").click()
-    #     self.driver.find_element(By.ID, "id_username").send_keys("decide")
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
 
-    #     self.driver.find_element(By.ID, "id_password").click()
-    #     self.driver.find_element(By.ID, "id_password").send_keys("decide")
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
 
-    #     self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
         
-    #     q = Question(id='24', desc='test question', type='order_choice')
-    #     q.save()
+        q = Question(id='24', desc='test question', type='order_choice')
+        q.save()
 
 
-    #     options_data = [
-    #     {'number': 1, 'option': 'test1'},
-    #     {'number': 2, 'option': 'test2'},
-    #         ]
+        options_data = [
+        {'number': 1, 'option': 'test1'},
+        {'number': 2, 'option': 'test2'},
+            ]
 
-    #     for data in options_data:
-    #         option = QuestionOption(question=q, **data)
-    #         option.save()
+        for data in options_data:
+            option = QuestionOption(question=q, **data)
+            option.save()
 
-    #     v = Voting(id = '233', name='test voting')
+        v = Voting(id = '233', name='test voting')
         
-    #     v.save()
-    #     v.questions.add(q)
+        v.save()
+        v.questions.add(q)
 
-    #     a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
-    #     a.save()
-    #     v.auths.add(a)
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
         
-    #     self.driver.get(self.live_server_url + "/admin/voting/voting/")
+        self.driver.get(self.live_server_url + "/admin/voting/voting/")
         
-    #     decide_user = User.objects.create_user(username='usertest1', password='usertest1')
-    #     decide_user.save()
+        decide_user = User.objects.create_user(username='usertest1', password='usertest1')
+        decide_user.save()
 
 
-    #     # Seleccionar la casilla de "test voting"
-    #     checkbox = self.driver.find_element(By.XPATH, "//input[@name='_selected_action' and @value='1']")
-    #     checkbox.click()
+        # Seleccionar la casilla de "test voting"
+        checkbox = self.driver.find_element(By.CLASS_NAME, "action-select")
+        checkbox.click()
 
-    #     # Seleccionar la acción 'Start' del menú desplegable 'Actions'
-    #     actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
-    #     actions_dropdown.select_by_visible_text('Start')
+        # Seleccionar la acción 'Start' del menú desplegable 'Actions'
+        actions_dropdown = Select(self.driver.find_element(By.NAME, 'action'))
+        actions_dropdown.select_by_visible_text('Start')
 
-    #     # Hacer clic en el botón 'Go'
-    #     self.driver.find_element(By.NAME, 'index').click()
+        # Hacer clic en el botón 'Go'
+        self.driver.find_element(By.NAME, 'index').click()
 
         
-    #     v_id = Voting.objects.latest('id').id  
-    #     self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
+        v_id = Voting.objects.latest('id').id  
+        self.driver.get(self.live_server_url + f'/booth/{v_id}/')  
 
     
-    #     self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").click()
-    #     self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").send_keys("usertest1")
-    #     self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").click()
-    #     self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").send_keys("usertest1")
-    #     self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) > .btn").click()
-    #     time.sleep(2)
-    #     self.driver.find_element(By.ID, "q1").click()
-    #     self.driver.find_element(By.ID, "q1").send_keys("1")
-    #     self.driver.find_element(By.ID, "q2").click()
-    #     self.driver.find_element(By.ID, "q2").send_keys("2")
-    #     self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
-    #     wait = WebDriverWait(self.driver, 2)
-    #     wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-danger')))
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").click()
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #username").send_keys("usertest1")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").click()
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) #password").send_keys("usertest1")
+        self.driver.find_element(By.CSS_SELECTOR, "form:nth-child(3) > .btn").click()
+        time.sleep(2)
+        self.driver.find_element(By.ID, "q1").click()
+        self.driver.find_element(By.ID, "q1").send_keys("1")
+        self.driver.find_element(By.ID, "q2").click()
+        self.driver.find_element(By.ID, "q2").send_keys("2")
+        self.driver.find_element(By.CSS_SELECTOR, ".mt-3").click()
+        wait = WebDriverWait(self.driver, 2)
+        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'alert-danger')))
         
     
     def testOrderChoiceVoteAutorized(self):
@@ -1266,7 +1266,7 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, "li > .addlink").click()
         self.driver.find_element(By.ID, "id_id").send_keys("123")
         self.driver.find_element(By.ID, "id_desc").click()
-        self.driver.find_element(By.ID, "id_desc").send_keys("a")
+        self.driver.find_element(By.ID, "id_desc").send_keys("")
         self.driver.find_element(By.ID, "id_options-0-option").click()
         self.driver.find_element(By.ID, "id_options-0-option").send_keys("a")
         self.driver.find_element(By.ID, "id_options-1-option").click()
@@ -1274,18 +1274,10 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_options-2-option").click()
         self.driver.find_element(By.ID, "id_options-2-option").send_keys("c")
         self.driver.find_element(By.NAME, "_save").click()
-        self.driver.find_element(By.CSS_SELECTOR, "li > .addlink").click()
-        self.driver.find_element(By.ID, "id_id").send_keys("124")
-        self.driver.find_element(By.ID, "id_desc").click()
-        self.driver.find_element(By.ID, "id_desc").send_keys("simple2")
-        self.driver.find_element(By.ID, "id_options-0-option").click()
-        self.driver.find_element(By.ID, "id_options-0-option").send_keys("1")
-        self.driver.find_element(By.ID, "id_options-1-option").click()
-        self.driver.find_element(By.ID, "id_options-1-option").send_keys("2")
-        self.driver.find_element(By.NAME, "_save").click()
-        
-        
-       
+        error_noDesc = self.driver.find_element(By.XPATH, "//*[contains(text(), 'This field is required.')]")
+        self.assertTrue(error_noDesc.is_displayed())
+
+    
 
 
 
