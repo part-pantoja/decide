@@ -28,7 +28,7 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
 
         self.base.tearDown()
     def test_booth_home_no_voting(self):
-        usuario = User.objects.create_user(username='andres', password='Cuaderno1')
+        User.objects.create_user(username='andres', password='Cuaderno1')
         self.driver.get(self.live_server_url)
         self.driver.set_window_size(1061, 904)
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
