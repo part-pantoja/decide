@@ -1348,7 +1348,7 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
             self.assertEquals(str(question.options.all()[1]),"simple b (3)")
             
 
-    def test_test(self):
+    def test_Creation_Mulitple_questions_voting(self):
         q = Question(id=82, desc='simple')
         q.save()
 
