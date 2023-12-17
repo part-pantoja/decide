@@ -139,7 +139,7 @@ class RegisterView(APIView):
     def get(self, request):
         form = UserCreationForm2()
         return render(request, 'registro/registry.html', {'form':form})
-    
+
 class SendEmail(APIView):
     def enviar_correo(request, username):
         if request.method == 'GET':
