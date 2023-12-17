@@ -605,7 +605,7 @@ class LogInSuccessTests(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
 
@@ -1212,7 +1212,7 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         options.add_argument("--no-sandbox")
         self.driver = webdriver.Chrome(options=options)
         self.decide_user = User.objects.create_user(username='decide', password='decide')
@@ -1322,6 +1322,48 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
             self.assertEquals(str(question.options.all()[0]), "simple a (2)")
             self.assertEquals(str(question.options.all()[1]),"simple b (3)")
             
+
+    def test_test(self):
+        q = Question(id=82, desc='simple')
+        q.save()
+
+        opt = QuestionOption(question=q, option='simple a')
+        opt.save()
+
+        opt = QuestionOption(question=q, option='simple b')
+        opt.save()
+
+        q2 = Question(id=83, desc='simple2')
+        q2.save()
+
+        opt = QuestionOption(question=q2, option='simple a')
+        opt.save()
+
+        opt = QuestionOption(question=q2, option='simple b')
+        opt.save()
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                          defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+        self.driver.find_element(By.CSS_SELECTOR, ".form-row:nth-child(3)").click()
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.CSS_SELECTOR, "li > .addlink").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Multiple questions")
+        dropdown = self.driver.find_element(By.ID, "id_questions")
+        dropdown.find_element(By.XPATH, "//option[. = 'simple']").click()
+        dropdown = self.driver.find_element(By.ID, "id_questions")
+        dropdown.find_element(By.XPATH, "//option[. = 'simple2']").click()
+        dropdown = self.driver.find_element(By.ID, "id_auths")
+        dropdown.find_element(By.XPATH, "/html/body/div/div[3]/div/div[1]/div/form/div/fieldset/div[4]/div/div[1]/select/option[1]").click()
+        self.driver.find_element(By.NAME, "_save").click()
+
 
 
    

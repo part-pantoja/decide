@@ -29,7 +29,7 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.base.setUp()
         options = webdriver.ChromeOptions()
         options.add_argument("--no-sandbox")
-        options.headless = True
+        options.headless = False
         self.driver = webdriver.Chrome(options=options)
         User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         super().setUp()
@@ -46,7 +46,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = True
+        options.headless = False
         self.driver = webdriver.Chrome(options=options)
         self.decide_user = User.objects.create_user(username='decide', password='decide')
         self.decide_user.is_staff = True
@@ -209,7 +209,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = True
+        options.headless = False
         self.driver = webdriver.Chrome(options=options)
 
         self.decide_user = User.objects.create_user(username='decide', password='decide')
