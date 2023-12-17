@@ -553,8 +553,8 @@ class VotingTestCase(BaseTestCase):
         v = self.test_create_voting_with_yesno_response()
         self.assertEquals(str(v), "test yesno voting")
         self.assertEquals(str(v.questions.first()),"test yesno question")
-        self.assertEquals(str(v.questions.first().options.all()[0]), "Si (2)")
-        self.assertEquals(str(v.questions.first().options.all()[1]),"No (3)")
+        self.assertEquals(str(v.questions.first().options.all()[0]),"No (3)")
+        self.assertEquals(str(v.questions.first().options.all()[1]),"Si (2)")
         
 
 
@@ -1143,7 +1143,9 @@ class OrderChoiceTests(StaticLiveServerTestCase):
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
         a.save()
         v.auths.add(a)
+        
         return v
+        self.tearDown
         
     def testOrderChoiceVotingExist(self):
             self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
@@ -1316,8 +1318,8 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
         questions_set = v.questions.all()
         
         for question in questions_set:
-            self.assertEquals(str(question.options.all()[0]), "simple a (2)")
-            self.assertEquals(str(question.options.all()[1]),"simple b (3)")
+            self.assertEquals(str(question.options.all()[0]),"simple b (3)")
+            self.assertEquals(str(question.options.all()[1]), "simple a (2)")
             
 
     def test_Creation_Mulitple_questions_voting(self):
