@@ -1,7 +1,5 @@
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-
-from base.tests import BaseTestCase
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -11,20 +9,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-
 from base.tests import BaseTestCase
 from census.models import Census
-
 from mixnet.models import Auth
 from voting.models import Voting, Question, QuestionOption
 from selenium.webdriver.common.action_chains import ActionChains
-from base import mods
-from base.tests import BaseTestCase
-from mixnet.models import Auth
-from voting.models import Voting, Question, QuestionOption
-from datetime import timedelta
-
-from django.contrib.auth.models import User
 
 class MultipleOptionTestCase(StaticLiveServerTestCase):
 
@@ -50,7 +39,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
 
     def test_preguntaconvotoenblanco(self):
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.driver.implicitly_wait(30)
         self.driver.set_window_size(1850, 1016)
         self.driver.find_element(By.ID, "id_username").click()
         self.driver.find_element(By.ID, "id_username").send_keys("admin1")
@@ -108,7 +96,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         a.save()
         nombre_pregunta = "test question"
         q = Question.objects.create(id=1000,desc=nombre_pregunta, type=Question.TypeChoices.MULTIPLE_CHOICE)
-        self.driver.implicitly_wait(30)
         q.save()
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
         self.driver.find_element(By.ID, "id_username").send_keys("admin1")
@@ -134,7 +121,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         q = Question.objects.create(id=1000,desc=nombre_pregunta, type=Question.TypeChoices.MULTIPLE_CHOICE)
         q.save()
         self.driver.find_element(By.LINK_TEXT, "Sign In").click()
-        self.driver.implicitly_wait(30)
         self.driver.find_element(By.ID, "id_username").send_keys("admin1")
         self.driver.find_element(By.ID, "id_password").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
@@ -151,7 +137,6 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_voting_id").click()
         self.driver.find_element(By.ID, "id_voting_id").send_keys("1")
         self.driver.find_element(By.ID, "id_voter_id").send_keys("1")
-        self.driver.implicitly_wait(10)
         self.driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(4)").click()
 
     def testcreateMultipleOptionQuestionSuccess(self):
