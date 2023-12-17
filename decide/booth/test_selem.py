@@ -18,7 +18,7 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
 
         options = webdriver.ChromeOptions()
         options.add_argument("--no-sandbox")
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
         super().setUp()
 
