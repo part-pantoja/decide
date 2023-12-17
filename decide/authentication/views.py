@@ -138,14 +138,12 @@ class RegisterView(APIView):
             return render(request, 'registro/registry.html', {'form': form, 'errors': errors})
     def get(self, request):
         form = UserCreationForm2()
-        return render(request, 'registro/registry.html', {'form':form})
-       
+        return render(request, 'registro/registry.html', {'form':form})   
 class SendEmail(APIView):
     def enviar_correo(request, username):
         if request.method == 'GET':
             return render(request, 'registro/sendEmail.html', {'username':username})
         if request.method == 'POST':
-                # Genera el token para el usuario recién registrado
                 user = User.objects.filter(username=username).first()
                 token2 = default_token_generator.make_token(user)
                 #Guardar el token en el campo de first_name del user

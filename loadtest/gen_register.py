@@ -15,13 +15,13 @@ class UserRegistration(HttpUser):
         #Generar datos aleatorios para el registro
         username = self.generate_random_string()
         email = f"{username}@example.com"
-        password = "pruebadecarga1"
+        valor = "pruebadecarga1"
         #Enviar solicitud de registro
         response = self.client.post(HOST+'/authentication/register/', data={
             "username": username,
             "email":email,
-            "password1":password,
-            "password2":password,
+            "password1":valor,
+            "password2":valor,
         }
         )
         print(f"Status code: {response.status_code}")
