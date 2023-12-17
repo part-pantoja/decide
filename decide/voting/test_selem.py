@@ -29,7 +29,7 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.base.setUp()
         options = webdriver.ChromeOptions()
         options.add_argument("--no-sandbox")
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
         User.objects.create_superuser('admin1', 'admin@example.com', 'admin')
         super().setUp()
