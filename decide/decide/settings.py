@@ -25,7 +25,7 @@ SECRET_KEY = '^##ydkswfu0+=ofw0l#$kv^8n)0$i(qd&d&ol#p9!b$8*5%j1+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['decidepantoja.pythonanywhere.com']
 
 
 # Application definition
@@ -232,3 +232,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'decideuser@gmail.com'
 EMAIL_HOST_PASSWORD = base64.b64decode(encoded).decode()
 EMAIL_USE_TLS = True
+
+MEDIA_URL = '/media/'
+STATIC_ROOT = os.path.join(BASE_DIR,'static')
+MEDIA_ROOT = os.path.join(BASE_DIR,'media')
