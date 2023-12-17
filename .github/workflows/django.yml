@@ -64,6 +64,7 @@ jobs:
         PA_API_TOKEN: ${{ secrets.PA_API_TOKEN }}
       run: |
         git pull
+        cd decidepantoja.pythonanywhere.com/decide
         python manage.py makemigrations
         python manage.py migrate
         pa_restart_webapp.py decidepantoja
