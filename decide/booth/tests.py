@@ -37,32 +37,36 @@ class BoothTestCase(BaseTestCase):
         u = User.objects.get(username='noadmin')
         super().login(user='noadmin')
         # Crear votaciones de prueba
-        q = Question(desc='test question')
+        q = Question(id=1234, desc='test question')
         q.save()
 
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i))
             opt.save()
 
-        v1 = Voting(name='test voting 1', question=q)
+        v1 = Voting(name='test voting 1')
         v1.save()
+        v1.questions.add(q)
         v1.start_date = timezone.now() - timedelta(days=1)
         v1.end_date = timezone.now()
         v1.save()
 
-        v2 = Voting(name='test voting 2', question=q)
+        v2 = Voting(name='test voting 2')
         v2.save()
+        v2.questions.add(q)
         v2.start_date = timezone.now() - timedelta(days=2)
         v2.end_date = timezone.now() - timedelta(days=1)
         v2.save()
 
-        v3 = Voting(name='test voting 3', question=q)
+        v3 = Voting(name='test voting 3')
         v3.save()
+        v3.questions.add(q)
         v3.start_date = timezone.now()
         v3.save()
 
-        v4 = Voting(name='test voting 4', question=q)
+        v4 = Voting(name='test voting 4')
         v4.save()
+        v4.questions.add(q)
         v4.start_date = timezone.now()
         v4.save()
 
@@ -95,32 +99,36 @@ class BoothTestCase(BaseTestCase):
         u = User.objects.get(username='noadmin')
         super().login(user='noadmin')
         # Crear votaciones de prueba
-        q = Question(desc='test question')
+        q = Question(id= 12, desc='test question')
         q.save()
 
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i))
             opt.save()
 
-        v1 = Voting(name='test voting 1', question=q)
+        v1 = Voting(name='test voting 1')
         v1.save()
+        v1.questions.add(q)
         v1.start_date = timezone.now() - timedelta(days=1)
         v1.end_date = timezone.now()
         v1.save()
 
-        v2 = Voting(name='test voting 2', question=q)
+        v2 = Voting(name='test voting 2')
         v2.save()
+        v2.questions.add(q)
         v2.start_date = timezone.now() - timedelta(days=2)
         v2.end_date = timezone.now() - timedelta(days=1)
         v2.save()
 
-        v3 = Voting(name='test voting 3', question=q)
+        v3 = Voting(name='test voting 3')
         v3.save()
+        v3.questions.add(q)
         v3.start_date = timezone.now()
         v3.save()
 
-        v4 = Voting(name='test voting 4', question=q)
+        v4 = Voting(name='test voting 4')
         v4.save()
+        v4.questions.add(q)
         v4.start_date = timezone.now()
         v4.save()
 
@@ -156,28 +164,34 @@ class BoothTestCase(BaseTestCase):
         u = User.objects.get(username='noadmin')
         super().login(user='noadmin')
         # Crear votaciones de prueba
-        q = Question(desc='test question')
+        q = Question(id=13, desc='test question')
         q.save()
 
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i))
             opt.save()
 
-        v1 = Voting(name='test voting 1', question=q)
+        v1 = Voting(name='test voting 1')
+        v1.save()
+        v1.questions.add(q)
         v1.save()
 
-        v2 = Voting(name='test voting 2', question=q)
+        v2 = Voting(name='test voting 2')
         v2.save()
+        v2.questions.add(q)
         v2.start_date = timezone.now() - timedelta(days=1)
         v2.end_date = timezone.now()
         v2.save()
 
-        v3 = Voting(name='test voting 3', question=q)
+        v3 = Voting(name='test voting 3')
         v3.save()
+        v3.questions.add(q)
         v3.start_date = timezone.now()
         v3.save()
 
-        v4 = Voting(name='test voting 4', question=q)
+        v4 = Voting(name='test voting 4')
+        v4.save()
+        v4.questions.add(q)
         v4.save()
 
         votings = [v1, v4]
@@ -212,30 +226,34 @@ class BoothTestCase(BaseTestCase):
         u = User.objects.get(username='noadmin')
         super().login(user='noadmin')
         # Crear votaciones de prueba
-        q = Question(desc='test question')
+        q = Question(id=15, desc='test question')
         q.save()
 
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i))
             opt.save()
 
-        v1 = Voting(name='test voting 1', question=q)
+        v1 = Voting(name='test voting 1')
         v1.save()
+        v1.questions.add(q)
         v1.start_date = timezone.now()
         v1.save()
 
-        v2 = Voting(name='test voting 2', question=q)
+        v2 = Voting(name='test voting 2')
         v2.save()
+        v2.questions.add(q)
         v2.start_date = timezone.now()
         v2.save()
 
-        v3 = Voting(name='test voting 3', question=q)
+        v3 = Voting(name='test voting 3')
         v3.save()
+        v3.questions.add(q)
         v3.start_date = timezone.now()
         v3.save()
 
-        v4 = Voting(name='test voting 4', question=q)
+        v4 = Voting(name='test voting 4')
         v4.save()
+        v4.questions.add(q)
         v4.start_date = timezone.now()
         v4.save()
 

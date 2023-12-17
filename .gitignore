@@ -101,3 +101,8 @@ ENV/
 .mypy_cache/
 
 .vagrant
+
+
+
+loadtest/gen_census.py
+loadtest/locustfile.py

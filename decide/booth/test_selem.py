@@ -47,17 +47,18 @@ class BoothHomeSeleniumTests(StaticLiveServerTestCase):
 
     def test_booth_home_with_votings(self):
         usuario = User.objects.create_user(username='andres', password='Cuaderno1')
-        q = Question(desc='test question')
+        q = Question(id=19, desc='test question')
         q.save()
-        q = Question(desc='test question')
+        q = Question(id=23, desc='test question')
         q.save()
 
         for i in range(5):
             opt = QuestionOption(question=q, option='option {}'.format(i))
             opt.save()
 
-        v1 = Voting(name='test voting 1', question=q)
+        v1 = Voting(name='test voting 1')
         v1.save()
+        v1.questions.add(q)
         v1.start_date = timezone.now()
         v1.save()
 

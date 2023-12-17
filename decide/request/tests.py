@@ -10,9 +10,11 @@ class CreateRequestTestCase(TestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', is_staff=True)
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-        q = Question(desc='test question')
+        q = Question(id=1001, desc='test question')
         q.save()
-        self.votacion = Voting(name='test voting', question=q)
+        self.votacion = Voting(name='test voting')
+        self.votacion.save()
+        self.votacion.questions.add(q)
         self.votacion.save()
 
     def test_create_request_success(self):
@@ -59,9 +61,11 @@ class ManageRequestTestCase(TestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', email='decidepartpantoja@gmail.com', is_staff=True)
         self.user = User.objects.create_user(username='testuser', password='testpassword', email='decidepartpantoja@gmail.com')
-        q = Question(desc='test question')
+        q = Question(id=423, desc='test question')
         q.save()
-        self.votacion = Voting(name='test voting', question=q)
+        self.votacion = Voting(name='test voting')
+        self.votacion.save()
+        self.votacion.questions.add(q)
         self.votacion.save()
         self.request_pending = Request.objects.create(voter_id=self.user.id, voting_id=self.votacion.id, status=RequestStatus.PENDING.value)
 

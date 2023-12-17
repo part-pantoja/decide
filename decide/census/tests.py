@@ -99,8 +99,10 @@ class CreateCensus(BaseTestCase):
 
     def test_create_census_successful(self):
         self.client.force_login(user=self.admin_user)
-        question=Question.objects.create(desc='test question')
-        voting = Voting.objects.create(name='test voting', question=question)
+        question=Question.objects.create(id= 34, desc='test question')
+        voting = Voting.objects.create(name='test voting')
+        voting.save()
+        voting.questions.add(question)
         user = User.objects.create(username='testuser', password='testpassword')
 
         form_data = {
@@ -113,8 +115,10 @@ class CreateCensus(BaseTestCase):
 
     def test_create_census_bad_user(self):
         self.client.force_login(user=self.admin_user)
-        question=Question.objects.create(desc='test question')
-        voting = Voting.objects.create(name='test voting', question=question)
+        question=Question.objects.create(id=25, desc='test question')
+        voting = Voting.objects.create(name='test voting')
+        voting.save()
+        voting.questions.add(question)
 
         form_data = {
             'voting_id': voting.id,
@@ -137,8 +141,10 @@ class CreateCensus(BaseTestCase):
         self.assertEqual(Census.objects.count(), 0)
     def test_create_census_existing_census(self):
         self.client.force_login(user=self.admin_user)
-        question=Question.objects.create(desc='test question')
-        voting = Voting.objects.create(name='test voting', question=question)
+        question=Question.objects.create(id=121, desc='test question')
+        voting = Voting.objects.create(name='test voting')
+        voting.save()
+        voting.questions.add(question)
         user = User.objects.create(username='testuser', password='testpassword')
 
         form_data = {
