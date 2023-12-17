@@ -46,7 +46,7 @@ class MultipleOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
         self.decide_user = User.objects.create_user(username='decide', password='decide')
         self.decide_user.is_staff = True
@@ -209,7 +209,7 @@ class PointsOptionTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
         self.decide_user = User.objects.create_user(username='decide', password='decide')
