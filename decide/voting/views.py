@@ -55,12 +55,14 @@ def tally_votes(request, voting_id):
     return redirect('voting:voting_details', voting_id=voting_id)
 
 class VotingView(generics.ListCreateAPIView):
+    
     queryset = Voting.objects.all()
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_fields = ('id', )
 
     def get(self, request, *args, **kwargs):
+        
         idpath = kwargs.get('voting_id')
         self.queryset = Voting.objects.all()
         version = request.version
@@ -73,24 +75,58 @@ class VotingView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         self.permission_classes = (UserIsStaff,)
         self.check_permissions(request)
-        for data in ['name', 'desc', 'question', 'question_opt']:
+        for data in ['name', 'desc', 'questions', 'question_opt']:
             if not data in request.data:
                 return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        question = Question(desc=request.data.get('question'))
-        question.save()
-        for idx, q_opt in enumerate(request.data.get('question_opt')):
-            opt = QuestionOption(question=question, option=q_opt, number=idx)
-            opt.save()
+        questions_data = request.data['questions']
         
-        voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'),
-                question=question)
-        voting.save()
+        # Validar que haya al menos una pregunta
+        if not questions_data:
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Crear una votación con múltiples preguntas
+        voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'))
 
-        auth, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
+        voting.save()
+        print('----------------------------------', voting)
+        if questions_data:
+            for question_data in questions_data:
+                
+                if question_data:
+                    return Response({}, status=status.HTTP_400_BAD_REQUEST)
+                # Validar que 'options' esté presente en los datos de la pregunta
+                if 'options' not in question_data:
+                    voting.delete()  # Eliminar la votación si hay un error en los datos
+                    return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+                question = Question(desc=question_data['desc'])
+                question.save()
+
+                for idx, option_data in enumerate(question_data['options']):
+                    option = QuestionOption(question=question, option=option_data, number=idx)
+                    option.save()
+
+                voting.questions.add(question)
+        else:
+            for question_data in questions_data:
+                if 'options' not in question_data:
+                    voting.delete()  # Eliminar la votación si hay un error en los datos
+                    return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+                question = Question(desc=question_data['desc'])
+                question.save()
+
+                for idx, option_data in enumerate(question_data['options']):
+                    option = QuestionOption(question=question, option=option_data, number=idx)
+                    option.save()
+
+                voting.questions.add(question)
+
+        auth, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
         auth.save()
         voting.auths.add(auth)
+        print('-------------------------------------', voting)
         return Response({}, status=status.HTTP_201_CREATED)
 
 class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
@@ -98,6 +134,7 @@ class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     permission_classes = (UserIsStaff,)
+    
     def put(self, request, voting_id, *args, **kwars):
         action = request.data.get('action')
         if not action:
