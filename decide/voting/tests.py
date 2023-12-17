@@ -76,10 +76,12 @@ class VotingHTMLTestCase(BaseTestCase):
 
     def test_start_voting(self):
         self.client.force_login(self.admin_user)
-        response = self.client.post(reverse('voting:start_voting', args=[self.voting.id]))
+        self.voting1 = Voting(id=100001, name='test voting')
+        self.voting1.save()
+        response = self.client.post(reverse('voting:start_voting', args=[self.voting1.id]))
         self.assertEqual(response.status_code, 302)
-        self.voting.refresh_from_db()
-        self.assertIsNotNone(self.voting.start_date)
+        self.voting1.refresh_from_db()
+        self.assertIsNotNone(self.voting1.start_date)
 
     def test_stop_voting(self):
         self.client.force_login(self.admin_user)
