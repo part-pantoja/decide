@@ -1278,7 +1278,50 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
         self.assertTrue(error_noDesc.is_displayed())
 
     
+    def test_create_voting_with_questions_response(self):
+        
+        q = Question(id=82, desc='Simple question')
+        q.save()
 
+        opt = QuestionOption(question=q, option='simple a')
+        opt.save()
+
+        opt = QuestionOption(question=q, option='simple b')
+        opt.save()
+
+        q2 = Question(id=83, desc='Simple question 2')
+        q2.save()
+
+        opt = QuestionOption(question=q2, option='simple a')
+        opt.save()
+
+        opt = QuestionOption(question=q2, option='simple b')
+        opt.save()
+
+        v = Voting(name='test questions voting')
+        v.save()
+
+        v.questions.add(q)
+        v.questions.add(q2)
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
+                                            defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        v.auths.add(a)
+        
+        
+        return v
+        
+       
+    def test_questions_to_string(self):
+        v = self.test_create_voting_with_questions_response()
+        self.assertEquals(str(v), "test questions voting")
+        questions_set = v.questions.all()
+        
+        for question in questions_set:
+            self.assertEquals(str(question.options.all()[0]), "simple a (2)")
+            self.assertEquals(str(question.options.all()[1]),"simple b (3)")
+            
 
 
    
