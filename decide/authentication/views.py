@@ -51,7 +51,7 @@ class LoginView(APIView):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            token, _ = Token.objects.get_or_create(user=user)
+            Token.objects.get_or_create(user=user)
             login(request, user)
             return redirect('bienvenida', username=user.username)
         else:
@@ -74,7 +74,7 @@ class EmailLoginView(APIView):
                 usuario = usuarios_con_correo.first()
 
                 if usuario.check_password(password):
-                    token, _ = Token.objects.get_or_create(user=usuario)
+                    Token.objects.get_or_create(user=usuario)
                     login(request, usuario, backend='django.contrib.auth.backends.ModelBackend')
                     return redirect('bienvenida', username=usuario.username)
                 else:
@@ -124,12 +124,10 @@ class RegisterView(APIView):
 
                 user = form.save()
 
-                token, _ = Token.objects.get_or_create(user=user)
+                Token.objects.get_or_create(user=user)
                 #Marcar como False el campo is_active
                 user.is_active = False
                 user.save()
-
-                
 
                 #token, _ = Token.objects.get_or_create(user=user)
                 #return Response({'user_pk': user.pk, 'token': token.key}, status=status.HTTP_201_CREATED)

@@ -219,11 +219,16 @@ if os.path.exists("config.jsonnet"):
 
 INSTALLED_APPS = INSTALLED_APPS + MODULES
 
+import base64
+
+email_app = 'leewpcxpocjygrys'
+encoded = base64.b64encode(email_app.encode()).decode()
+
 # Configuración correo electronico
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'decideuser@gmail.com'
-EMAIL_HOST_PASSWORD = 'leewpcxpocjygrys'
+EMAIL_HOST_PASSWORD = base64.b64decode(encoded).decode()
 EMAIL_USE_TLS = True

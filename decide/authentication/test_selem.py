@@ -24,7 +24,6 @@ class AdminTestCase(StaticLiveServerTestCase):
 
         self.base.tearDown()
 
-    #def test_correct_login_selenium(self):
     def test_registroConCuentaExistente(self):
         self.driver.get(self.live_server_url+"/authentication/register")
         time.sleep(5)
@@ -52,6 +51,12 @@ class AdminTestCase(StaticLiveServerTestCase):
 
         #Boton de registrar
         self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
+
+        time.sleep(5)
+
+        sigueEnRegistro = self.driver.find_element(By.ID, 'id_username').is_displayed()
+
+        self.assertEqual(sigueEnRegistro, True)
 
 
 
