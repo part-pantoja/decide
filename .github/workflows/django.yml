@@ -63,7 +63,7 @@ jobs:
         PA_USERNAME: ${{ secrets.PA_USERNAME }}
         PA_API_TOKEN: ${{ secrets.PA_API_TOKEN }}
       run: |
-        git pull origin main
+        git pull
         python manage.py makemigrations
         python manage.py migrate
         pa_restart_webapp.py decidepantoja
