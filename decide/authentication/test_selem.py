@@ -1,8 +1,11 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from base.tests import BaseTestCase
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
 
 class AdminTestCase(StaticLiveServerTestCase):
+
     def setUp(self):
         #Crea un usuario admin y otro no admin
         self.base = BaseTestCase()
@@ -10,14 +13,52 @@ class AdminTestCase(StaticLiveServerTestCase):
 	
         #Opciones de Chrome
         options = webdriver.ChromeOptions()
-        options.headless = True
         options.add_argument("--no-sandbox")
+        options.headless = False
         self.driver = webdriver.Chrome(options=options)
-
-        super().setUp()
+        super().setUp()            
+            
     def tearDown(self):           
         super().tearDown()
         self.driver.quit()
+
         self.base.tearDown()
 
     #def test_correct_login_selenium(self):
+    def test_registroConCuentaExistente(self):
+        self.driver.get("http://127.0.0.1:8000/authentication/register")
+        time.sleep(5)
+
+        #Busca los campos que rellenar 
+        self.driver.find_element(By.ID, 'id_username').send_keys("pruebaCorreo")
+        self.driver.find_element(By.ID, 'id_email').send_keys("pruebaCorreo@correo.us")
+        self.driver.find_element(By.ID, 'id_password1').send_keys("estoesunaprueba1")
+        self.driver.find_element(By.ID, 'id_password2').send_keys("estoesunaprueba1")
+
+        #Boton de registrar
+        self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
+
+        #Redirigir a la pagina inicial
+        self.driver.get(f'{self.live_server_url}/')
+
+        #Redirigir a la pagina de registro
+        self.driver.get(f'http://127.0.0.1:8000/authentication/register/')
+        
+        #Busca los campos que rellenar 
+        self.driver.find_element(By.ID, 'id_username').send_keys("pruebaCorreo1")
+        self.driver.find_element(By.ID, 'id_email').send_keys("pruebaCorreo@correo.us")
+        self.driver.find_element(By.ID, 'id_password1').send_keys("estoesunaprueba2")
+        self.driver.find_element(By.ID, 'id_password2').send_keys("estoesunaprueba2")
+
+        #Boton de registrar
+        self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
+
+        time.sleep(5)
+
+        mensaje = self.driver.find_element(By.XPATH, '/html/body/div/p').text
+        print(mensaje)
+
+        #Verifica que el mensaje ha aparecido y es el mismo
+        self.assertEqual(mensaje, "El correo seleccionado ya existe")
+
+        

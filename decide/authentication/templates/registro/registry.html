@@ -98,6 +98,10 @@
 
     <div class="form-container">
         <h2>Registro de Usuario</h2>
+        <!-- Mostrar mensaje de error si existe -->
+        {% if mensaje %}
+            <p style="color: red;">{{ mensaje }}</p>
+        {% endif %}
         <form method="post" action="{% url 'register' %}" id="registrationForm">
             {% csrf_token %}
 
@@ -105,6 +109,7 @@
             <button type="submit" onclick="validateRegistration()">Registrarse</button>
         </form>
 
+        
         
 
         <!-- Nuevo apartado -->

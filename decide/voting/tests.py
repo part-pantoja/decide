@@ -16,8 +16,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+
 from selenium.webdriver.common.action_chains import ActionChains
 import time
+
 
 from base import mods
 from base.tests import BaseTestCase
@@ -153,7 +155,7 @@ class VotingTestCase(BaseTestCase):
         
 
         return v
-    
+
     def test_create_voting_with_blank_votes(self):
             q = Question(id=1234, desc='test question with blank vote', is_blank_vote_allowed=True)
             q.save()
@@ -208,11 +210,12 @@ class VotingTestCase(BaseTestCase):
         v.save()
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
+                                        defaults={'me': True, 'name': 'test auth'})
         a.save()
         v.auths.add(a)
 
         return v
+
     
     def store_votes_open_response(self,v):
         voters = list(Census.objects.filter(voting_id=v.id))
@@ -317,6 +320,8 @@ class VotingTestCase(BaseTestCase):
             self.store_vote_open_response_empty_response(v)
 
 
+
+
     def create_voters(self, v):
         for i in range(100):
             u, _ = User.objects.get_or_create(username='testvoter{}'.format(i))
@@ -381,7 +386,9 @@ class VotingTestCase(BaseTestCase):
 
     def test_create_voting_with_yesno_response(self):
         
+
         q = Question(id=82, desc='test yesno question')
+
         q.save()
 
         opt = QuestionOption(question=q, option='Si')
@@ -390,10 +397,12 @@ class VotingTestCase(BaseTestCase):
         opt = QuestionOption(question=q, option='No')
         opt.save()
 
+
         v = Voting(name='test yesno voting')
         v.save()
 
         v.questions.add(q)
+
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                             defaults={'me': True, 'name': 'test auth'})
@@ -402,8 +411,7 @@ class VotingTestCase(BaseTestCase):
         
         
         return v
-        print("TEST 1")
-    
+
 
 
     def test_create_voting_from_api(self):
@@ -473,6 +481,36 @@ class VotingTestCase(BaseTestCase):
 
         # response = self.client.post('/voting/', data, format='json')
         # self.assertEqual(response.status_code, 201)
+        
+
+
+
+    
+    def test_create_yesno_voting_from_api(self):
+        data = {'name': 'Example YesNo'}
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 401)
+
+        # login with user no admin
+        self.login(user='noadmin')
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 403)
+
+        # login with user admin
+        self.login()
+        response = mods.post('voting', params=data, response=True)
+        self.assertEqual(response.status_code, 400)
+
+        data = {
+            'name': 'Example YesNo',
+            'desc': 'Example YesNo',
+            'type': 'YESNO_RESPONSE',
+            'question': 'Es usted mayor de edad?',
+            'question_opt': ['Si', 'No']
+        }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 201)
         
 
 
@@ -562,6 +600,7 @@ class VotingTestCase(BaseTestCase):
          self.assertEquals(str(v.questions.first().options.all()[0]),"option 1 (2)")
 
 
+
     def test_yesNo_to_string(self):
         v = self.test_create_voting_with_yesno_response()
         self.assertEquals(str(v), "test yesno voting")
@@ -569,6 +608,7 @@ class VotingTestCase(BaseTestCase):
         self.assertEquals(str(v.questions.first().options.all()[0]), "Si (2)")
         self.assertEquals(str(v.questions.first().options.all()[1]),"No (3)")
         
+
 
 
     # def test_create_voting_API(self):
@@ -735,7 +775,9 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.cleaner.current_url == self.live_server_url+"/admin/voting/question/")
 
+
     def testcreateYesNoQuestionSuccess(self):
+
         self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
 
@@ -753,10 +795,12 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_desc").send_keys('YesNo')
 
         select_element = self.driver.find_element(By.ID, "id_type")
+
         Select(select_element).select_by_visible_text('YesNo Response') 
 
         self.driver.find_element(By.ID, "id_id").click()
         self.driver.find_element(By.ID, "id_id").send_keys('87')
+
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
@@ -814,8 +858,10 @@ class QuestionsTests(StaticLiveServerTestCase):
         select_element = self.driver.find_element(By.ID, "id_type")
         Select(select_element).select_by_visible_text('YesNo Response') 
 
+
         self.driver.find_element(By.ID, "id_id").click()
         self.driver.find_element(By.ID, "id_id").send_keys('98')
+
         self.driver.find_element(By.ID, "id_options-0-number").click()
         self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
         self.driver.find_element(By.ID, "id_options-0-option").click()
@@ -828,6 +874,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         error_noDesc = self.driver.find_element(By.XPATH, "//*[contains(text(), 'This field is required.')]")
         self.assertTrue(error_noDesc.is_displayed())
+
 
 
 
@@ -884,6 +931,7 @@ class QuestionsTests(StaticLiveServerTestCase):
 
         self.assertTrue(self.driver.current_url == self.live_server_url + f'/booth/{v_id}/')
 
+
     
     def createCensusEmptyError(self):
         self.cleaner.get(self.live_server_url+"/admin/login/?next=/admin/")
@@ -909,6 +957,7 @@ class QuestionsTests(StaticLiveServerTestCase):
    
     
 class OrderChoiceTests(StaticLiveServerTestCase):
+
 
     def setUp(self):
         #Load base test functionality for decide
@@ -1367,3 +1416,4 @@ class VotingWithQuestionsTests(StaticLiveServerTestCase):
 
 
    
+

@@ -39,7 +39,7 @@ def booth_home(request):
 
     if user_votings:
         filtro = request.GET.get('filtro', None)
-        if filtro == 'disponibles':
+        if filtro == 'disponibles' or filtro is None:
             for voting in user_votings:
                 for v in voting:
                     if v['start_date'] and not v['end_date']:
@@ -50,6 +50,7 @@ def booth_home(request):
         elif filtro == 'no_iniciadas':
             for voting in user_votings:
                 for v in voting:
+                    print(v)
                     if not v['start_date']:
                         votos.append(v)
         else:
@@ -58,7 +59,8 @@ def booth_home(request):
                     votos.append(v)
 
     return render(request, 'booth/booth_home.html', {
-        'votings': votos
+        'votings': votos,
+        'filtro': request.GET.get('filtro', None)
     })
 
 
