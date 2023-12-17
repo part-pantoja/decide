@@ -53,13 +53,6 @@ class AdminTestCase(StaticLiveServerTestCase):
         #Boton de registrar
         self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
 
-        time.sleep(5)
 
-        
-
-        mensaje = self.driver.find_element(By.XPATH, '/html/body/div/p').text
-
-        #Verifica que el mensaje ha aparecido y es el mismo
-        # self.assertEqual(mensaje, "El correo seleccionado ya existe")
 
         
