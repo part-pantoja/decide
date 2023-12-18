@@ -48,8 +48,8 @@ class LoginView(APIView):
         return render(request, 'registro/loginSinGoogle.html', {'form':form})
 
     def post(self, request, *args, **kwargs):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get('id_username')
+        password = request.POST.get('id_password')
         usuario_con_username = User.objects.filter(username=username)
 
         if usuario_con_username.exists():
