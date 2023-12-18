@@ -769,46 +769,6 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.assertIn("YesNo Response", preguntas)
 
 
-
-
-    def testCreateDescriptionEmptyError(self):
-
-        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
-        self.driver.set_window_size(1280, 720)
-
-        self.driver.find_element(By.ID, "id_username").click()
-        self.driver.find_element(By.ID, "id_username").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").click()
-        self.driver.find_element(By.ID, "id_password").send_keys("decide")
-
-        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-
-        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
-
-        select_element = self.driver.find_element(By.ID, "id_type")
-        Select(select_element).select_by_visible_text('YesNo Response')
-
-
-        self.driver.find_element(By.ID, "id_id").click()
-        self.driver.find_element(By.ID, "id_id").send_keys('98')
-
-        self.driver.find_element(By.ID, "id_options-0-number").click()
-        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
-        self.driver.find_element(By.ID, "id_options-0-option").click()
-        self.driver.find_element(By.ID, "id_options-0-option").send_keys('testYes')
-        self.driver.find_element(By.ID, "id_options-1-number").click()
-        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
-        self.driver.find_element(By.ID, "id_options-1-option").click()
-        self.driver.find_element(By.ID, "id_options-1-option").send_keys('testNo')
-        self.driver.find_element(By.NAME, "_save").click()
-
-        error_noDesc = self.driver.find_element(By.XPATH, "//*[contains(text(), 'This field is required.')]")
-        self.assertTrue(error_noDesc.is_displayed())
-
-
-
-
     def testStartYesNoVoting(self):
         self.driver.get(self.live_server_url + "/admin/login/?next=/admin/")
         self.driver.set_window_size(1280, 720)
@@ -861,6 +821,42 @@ class QuestionsTests(StaticLiveServerTestCase):
         self.driver.get(self.live_server_url + f'/booth/{v_id}/')
 
         self.assertTrue(self.driver.current_url == self.live_server_url + f'/booth/{v_id}/')
+
+
+    def testCreateDescriptionEmptyError(self):
+
+        self.driver.get(self.live_server_url+"/admin/login/?next=/admin/")
+        self.driver.set_window_size(1280, 720)
+
+        self.driver.find_element(By.ID, "id_username").click()
+        self.driver.find_element(By.ID, "id_username").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").click()
+        self.driver.find_element(By.ID, "id_password").send_keys("decide")
+
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.get(self.live_server_url+"/admin/voting/question/add/")
+
+        select_element = self.driver.find_element(By.ID, "id_type")
+        Select(select_element).select_by_visible_text('YesNo Response')
+
+
+        self.driver.find_element(By.ID, "id_id").click()
+        self.driver.find_element(By.ID, "id_id").send_keys('98')
+
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys('1')
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys('testYes')
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys('2')
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys('testNo')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        error_noDesc = self.driver.find_element(By.XPATH, "//*[contains(text(), 'This field is required.')]")
+        self.assertTrue(error_noDesc.is_displayed())
 
 
     
