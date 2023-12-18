@@ -94,12 +94,7 @@
     <div class="form-container">
         <form method="post" action="{% url 'login-sin-google' %}">
             {% csrf_token %}
-            <label for="id_username">Username:</label>
-            <input type="id_username" id="id_username" name="id_username" required>
-            <br>
-            <label for="id_password">Contraseña:</label>
-            <input type="password" id="id_password" name="id_password" required>
-            <br>
+            {{ form.as_p }}
             <button type="submit">Iniciar Sesión</button>
            
         

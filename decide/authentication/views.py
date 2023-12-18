@@ -48,23 +48,15 @@ class LoginView(APIView):
         return render(request, 'registro/loginSinGoogle.html', {'form':form})
 
     def post(self, request, *args, **kwargs):
-        username = request.POST.get('id_username')
-        password = request.POST.get('id_password')
-        usuario_con_username = User.objects.filter(username=username)
-
-        if usuario_con_username.exists():
-            usuario = usuario_con_username.first()
-
-            if usuario.check_password(password):
-                Token.objects.get_or_create(user=usuario)
-                login(request, usuario, backend='django.contrib.auth.backends.ModelBackend')
-                return redirect('bienvenida', username=usuario.username)
-            else:
-                messages.error(request, 'Contraseña incorrecta')
-                return render(request, 'registro/loginSinGoogle.html')
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            Token.objects.get_or_create(user=user)
+            login(request, user)
+            return redirect('bienvenida', username=user.username)
         else:
-            messages.error(request, 'Nombre de usuario no encontrado')
-            return render(request, 'registro/loginSinGoogle.html')
+            messages.error(request, 'Nombre de usuario o contraseña incorrectos')
+            return render(request, 'registro/loginSinGoogle.html', {'form': form})
 
 
 class EmailLoginView(APIView):
