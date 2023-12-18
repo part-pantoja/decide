@@ -23,17 +23,17 @@
         <div class="voting container">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
 
-            <h2 v-if="!voting.start_date">Votación no comenzada</h2>
-            <h2 v-else-if="!voting.end_date">Votación en curso</h2>
+            <h2 v-if="!voting.start_date">Abstimmung noch nicht begonnen</h2>
+            <h2 v-else-if="!voting.end_date">Abstimmung läuft</h2>
             <div v-else>
-                <h2 class="heading">Resultados:</h2>
+                <h2 class="heading">Ergebnisse:</h2>
 
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>Opción</th>
-                            <th>Puntuación</th>
-                            <th>Votos</th>
+                            <th>Option</th>
+                            <th>Punktwertung</th>
+                            <th>Abstimmungen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,22 +48,22 @@
 
         </div>
         <div>
-            <a href="en">
-                <button id="en" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
-                    Traducir a inglés
+            <a href="es">
+                <button id="es" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Ins Spanische übersetzen
                 </button>
             </a>
         </div>
 
         <div>
-            <a href="de">
-                <button id="de" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
-                    Traducir a alemán
+            <a href="en">
+                <button id="en" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Ins Englische übersetzen
                 </button>
             </a>
         </div>
+        
     </div>
-</div>
 {% endblock %}
 
 {% block extrabody %}

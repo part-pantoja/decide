@@ -23,17 +23,17 @@
         <div class="voting container">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
 
-            <h2 v-if="!voting.start_date">Votación no comenzada</h2>
-            <h2 v-else-if="!voting.end_date">Votación en curso</h2>
+            <h2 v-if="!voting.start_date">Voting not started</h2>
+            <h2 v-else-if="!voting.end_date">Voting in progress</h2>
             <div v-else>
-                <h2 class="heading">Resultados:</h2>
+                <h2 class="heading">Results:</h2>
 
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>Opción</th>
-                            <th>Puntuación</th>
-                            <th>Votos</th>
+                            <th>Option</th>
+                            <th>Score</th>
+                            <th>Votes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,9 +48,9 @@
 
         </div>
         <div>
-            <a href="en">
-                <button id="en" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
-                    Traducir a inglés
+            <a href="es">
+                <button id="es" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Translate to Spanish
                 </button>
             </a>
         </div>
@@ -58,12 +58,12 @@
         <div>
             <a href="de">
                 <button id="de" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
-                    Traducir a alemán
+                    Translate to German
                 </button>
             </a>
         </div>
+    
     </div>
-</div>
 {% endblock %}
 
 {% block extrabody %}

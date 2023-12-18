@@ -35,3 +35,21 @@ class VisualizerTestCase(StaticLiveServerTestCase):
             response =self.driver.get(f'{self.live_server_url}/visualizer/{v.pk}/')
             vState= self.driver.find_element(By.TAG_NAME,"h2").text
             self.assertTrue(vState, "Votación no comenzada")
+
+    def test_traducirDE_ES(self):
+        options = webdriver.FirefoxOptions()
+        options.headless = True
+        driver = webdriver.Firefox(options=options)
+        driver.get("http://localhost:8000/visualizer/1/")
+        driver.set_window_size(1294, 704)
+        driver.find_element(By.ID, "de").click()
+        assert driver.find_element(By.CSS_SELECTOR, ".navbar-brand").text == "Decide"
+
+    def test_traducirEN_ES(self):
+        options = webdriver.FirefoxOptions()
+        options.headless = True
+        driver = webdriver.Firefox(options=options)
+        driver.get("http://localhost:8000/visualizer/1/")
+        driver.set_window_size(1294, 704)
+        driver.find_element(By.ID, "en").click()
+        assert driver.find_element(By.CSS_SELECTOR, ".navbar-brand").text == "Decide"
