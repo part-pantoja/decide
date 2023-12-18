@@ -155,9 +155,8 @@ class SendEmail(APIView):
             emailCorporativo = settings.EMAIL_HOST_USER
             subject = 'Registro en decide'
             message = 'Bienvenido a decide, gracias por registrarse en nuestra aplicación. Estamos emocionados de tenerte a bordo, ' + name + '.'
-            message2 = 'Por favor introduce el codigo en la página que le ha redirigido o ' \
-            'http://127.0.0.1:8000/authentication/verificar-correo/' + name + \
-            '/ para verificar su identidad: ' + token2
+            message2 = 'Por favor introduce el codigo en la página que le ha redirigido ' \
+            'para verificar su identidad: ' + token2
             message3 = 'Si tienes alguna pregunta o necesitas asistencias, no dudes en contactarnos ' + emailCorporativo + '.'
             template = render_to_string('registro/email_template.html', {
                 'name':name,
