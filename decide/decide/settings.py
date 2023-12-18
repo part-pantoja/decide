@@ -150,7 +150,10 @@ WSGI_APPLICATION = 'decide.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-        'default': dj_database_url
+        'default': dj_database_url.config(
+            default='postgresql://postgres:postgres@localhost:5432/mysite',
+            conn_max_age=600
+        )
 }
 
 
