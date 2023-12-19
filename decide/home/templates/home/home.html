@@ -1,11 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Bienvenido a Decide</title>
-</head>
-<body>
-    <h1>¡Bienvenido a Decide!</h1>
-    <p>Estamos encantados de tenerte aquí.</p>
-</body>
-</html>
+{% extends 'base.html' %}
 
+{% block title %}Página de Inicio{% endblock %}
+
+{% block content %}
+    <div class="container text-center mt-5">
+        <h1 class="display-3">¡Bienvenido a Decide!</h1>
+        <p class="lead">Donde tus opiniones marcan la diferencia.</p>
+
+        <a href="{% url 'booth:booth_home' %}" class="btn btn-primary btn-lg mt-3">¡Empieza a Votar!</a>
+    </div>
+{% endblock %}

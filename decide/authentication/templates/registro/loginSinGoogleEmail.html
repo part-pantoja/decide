@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            width: 300px; 
+            text-align: center;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; 
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #ffffff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .registro-link {
+            margin-bottom: 16px;
+        }
+
+        .registro-link a {
+            color: #4caf50;
+            text-decoration: none;
+        }
+
+        .registro-link a:hover {
+            text-decoration: underline;
+        }
+
+        .google-login-container {
+            text-align: center;
+        }
+
+        .google-login {
+            background-color: #4285f4;
+            color: #ffffff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%; 
+            display: inline-block;
+        }
+
+        .google-login:hover {
+            background-color: #357ae8;
+        }
+    </style>
+</head>
+<body>
+    {% load socialaccount %}
+    
+    <div class="form-container">
+        <form method="post" action="{% url 'login-sin-google-email' %}">
+            {% csrf_token %}
+            <label for="email">Correo electrónico:</label>
+            <input type="email" id="email" name="email" required>
+            <br>
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <button type="submit">Iniciar Sesión</button>
+           
+        
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <br>
+            <br>
+
+            <div class="Cambiar-Email">
+                Iniciar sesion con username <a href="{% url 'login-sin-google' %}">Pincha aquí</a>
+            </div>
+            <br>
+            <div class="registro-link">
+                ¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate aquí</a>
+            </div>
+            
+        </form>
+
+    </div>
+
+    
+</body>
+</html>

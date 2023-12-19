@@ -2,11 +2,11 @@
 {% load i18n static %}
 
 {% block extrahead %}
-    <link type="text/css" rel="stylesheet"
-         href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet"
          href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css" />
     <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -22,28 +22,237 @@
 
         <div class="voting container">
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
-
+        
             <h2 v-if="!voting.start_date">Votación no comenzada</h2>
             <h2 v-else-if="!voting.end_date">Votación en curso</h2>
             <div v-else>
                 <h2 class="heading">Resultados:</h2>
 
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Opción</th>
-                            <th>Puntuación</th>
-                            <th>Votos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="opt in voting.postproc" :key="opt.number">
-                            <th>[[opt.option]]</th>
-                            <td>[[opt.postproc]]</td>
-                            <td class="text-muted">[[opt.votes]]</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div v-if="voting.questions.length === 1">
+
+                    
+                    <form v-if="voting.questions[0].type === 'yesno_response'">
+                        <table class="table table-bordered table-striped" >
+                            <thead>
+                                <tr>
+                                    <th>Opción</th>
+                                    <th>Votos</th>
+                                    <th>Porcentaje</th>
+                                    <th>Ratio</th>
+                                </tr>
+                            </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.number]]    [[opt.option]]    </th>
+                                <td>[[opt.votes]]</td>
+                                <td>[[opt.percentage]]</td>
+                                <td>[[opt.ratio]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+
+
+
+                <form v-if="voting.questions[0].type === 'single_choice'">
+                <!-- Mostrar la tabla -->
+                    <table class="table table-bordered table-striped" >
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.number]]    [[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Diagrama de queso</th>
+                                    <th>Diagrama de barras</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="pie">
+                                            <canvas id="pieChart" width="300" height="300"></canvas>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="chart">
+                                            <canvas id="votingChart" width="300" height="300"></canvas>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                    </table>
+                    <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Opción</th>
+                                    <th>Porcentaje de Votos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="opt in voting.postproc" :key="opt.number">
+                                    <td>[[opt.number]]</td>
+                                    <td>[[opt.percentage]]%</td>
+                                </tr>
+                            </tbody>
+                    </table>
+                </form>
+
+              
+              
+              
+                <form v-if="voting.questions[0].type === 'open_response'">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Valor</th>
+                                <th>Número de votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <td>[[opt.option]]</td>
+                                <td>[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Media de las respuestas</th>
+                                <th>Mediana de las respuestas</th>
+                                <th>Varianza de las respuestas</th>
+                                <th>Desviación típica de las respuestas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>[[voting.postproc[0].media]]</td>
+                                <td>[[voting.postproc[0].median]]</td>
+                                <td>[[voting.postproc[0].variance]]</td>
+                                <td>[[voting.postproc[0].standard_deviation]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </form>
+                <div v-if="voting.questions[0].type === 'multiple_choice'">
+
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
+                </div>
+                <div v-if="voting.questions[0].type === 'points_options'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Puntuación</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in voting.postproc" :key="opt.number">
+                                <th>[[opt.option]]</th>
+                                <td>[[opt.postproc]]</td>
+                                <td class="text-muted">[[opt.votes]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Gráfico de resultados -->
+                    <div class="chart-container" style="max-width: 1400px; margin: auto;">
+                        <canvas id="votingChart"></canvas>
+                    </div>
+                    
+                </div>
+
+                <div v-if="voting.questions[0].type === 'order_choice'">
+                    <!-- Tabla de resultados -->
+                    <table id="votingTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Puesto</th>
+                                <th>Opcion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(opt) in sortedOptions" :key="opt.number">
+                                <th>[[opt.order]]</th>
+                                <td>[[opt.option]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                
+                </div>
+                
+                
+                
+            </div>
+                
+                
+
+            <div v-else>
+
+                
+                
+                <div v-for="question in voting.questions" :key="question.desc">
+                    <h3>{{ question.desc }}</h3>
+                    
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Opción</th>
+                                <th>Votos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="opt in question.options" :key="opt.number">
+                                <td>[[ opt.option ]]</td>
+                                <td>
+                                    <template v-for="list in voting.postproc" :key="list.option">
+                                        <template v-if="list.number === opt.number && list.question_id === question.id">
+                                            [[list.votes]]
+                                        </template>
+                                    </template>
+                                </td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
@@ -72,19 +281,95 @@
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
     <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
-
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        var voting = {{voting|safe}};
-        const { createApp } = Vue
-        createApp({
-            delimiters: ['[[', ']]'],
-            data() {
-                return {
-                    voting: voting
+        document.addEventListener('DOMContentLoaded', function () {
+            var voting = {{ voting|safe }};
+            const { createApp } = Vue;
+    
+            createApp({
+                delimiters: ['[[', ']]'],
+                data() {
+                    return {
+                        voting: voting
+                    };
+                },
+                mounted() {
+                    this.createCharts();
+                },
+                computed: {
+                    sortedOptions() {
+                        return this.voting.postproc
+                            .slice()
+                            .sort((a, b) => a.votes - b.votes)
+                            .map((opt, index) => ({ ...opt, order: index + 1 }));
+                    },
+                },
+                computed: {
+                sortedOptions() {
+                    return this.voting.postproc
+                        .slice()
+                        .sort((a, b) => a.votes - b.votes)
+                        .map((opt, index) => ({ ...opt, order: index + 1 }));
+                },
+            },
+                methods: {
+                    createCharts() {
+                        // Voting Chart
+                        this.createChart('votingChart', 'bar', {
+                            labels: this.voting.postproc.map(opt => opt.option),
+                            datasets: [{
+                                label: 'Votos',
+                                data: this.voting.postproc.map(opt => opt.votes),
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        });
+    
+                        // Pie Chart
+                        this.createChart('pieChart', 'pie', {
+                            labels: this.voting.postproc.map(opt => opt.option),
+                            datasets: [{
+                                data: this.voting.postproc.map(opt => opt.votes),
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.5)',
+                                    'rgba(54, 162, 235, 0.5)',
+                                    'rgba(255, 206, 86, 0.5)',
+                                    'rgba(75, 192, 192, 0.5)',
+                                    'rgba(153, 102, 255, 0.5)',
+                                    'rgba(255, 159, 64, 0.5)',
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                ],
+                                borderWidth: 1
+                            }]
+                        });
+                    },
+                    createChart(id, type, data) {
+                        const ctx = document.getElementById(id).getContext('2d');
+                        const options = {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        };
+    
+                        new Chart(ctx, {
+                            type: type,
+                            data: data,
+                            options: options
+                        });
+                    }
                 }
-            }
-        }).mount('#app-visualizer')
+            }).mount('#app-visualizer');
+        });
     </script>
 </body>
 {% endblock %}

@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - develop
-      - master
+      - main
+      - 'test*'
+      - 'bugfix*'
 
 jobs:
   build:
@@ -42,11 +44,23 @@ jobs:
         cp decide/local_settings.gactions.py decide/local_settings.py
     - name: Run migrations (unnecessary)
       run: |
+        find . -path "/migrations/000" -type f -delete
         cd decide
+        python manage.py makemigrations
         python manage.py migrate
+    - name: Lanzar tests
+      run: |
+        cd decide
+        coverage run --branch --source=. ./manage.py test  --keepdb 
+        coverage xml 
     - name: Codacy Coverage Reporter
       uses: codacy/codacy-coverage-reporter-action@v1
       with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: decide/coverage.xml
-
+    - name: Deploy to PythonAnywhere
+      env:
+        PA_USERNAME: ${{ secrets.PA_USERNAME }}
+        PA_API_TOKEN: ${{ secrets.PA_API_TOKEN }}
+      run: |
+        git pull

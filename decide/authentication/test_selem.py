@@ -1,14 +1,8 @@
-from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-
 from base.tests import BaseTestCase
-import time
-
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
+import time
 
 class AdminTestCase(StaticLiveServerTestCase):
 
@@ -19,9 +13,9 @@ class AdminTestCase(StaticLiveServerTestCase):
 	
         #Opciones de Chrome
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.add_argument("--no-sandbox")
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
-
         super().setUp()            
             
     def tearDown(self):           
@@ -29,24 +23,28 @@ class AdminTestCase(StaticLiveServerTestCase):
         self.driver.quit()
 
         self.base.tearDown()
-    
-    def test_simpleCorrectLogin(self):      
-       #Abre la ruta del navegador             
-        self.driver.get(f'{self.live_server_url}/admin/')
-       #Busca los elementos y “escribe”
-        self.driver.find_element(By.ID,'id_username').send_keys("admin")
-        self.driver.find_element(By.ID,'id_password').send_keys("qwerty",Keys.ENTER)
-        
-       #Verifica que nos hemos logado porque aparece la barra de herramientas superior
-        self.assertTrue(len(self.driver.find_elements(By.ID, 'user-tools'))==1)
-        
-    def test_simpleWrongLogin(self):
 
-        self.driver.get(f'{self.live_server_url}/admin/')
-        self.driver.find_element(By.ID,'id_username').send_keys("WRONG")
-        self.driver.find_element(By.ID,'id_password').send_keys("WRONG")       
-        self.driver.find_element(By.ID,'login-form').submit()
-
-       #Si no, aparece este error
-        self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'errornote'))==1)
+    def test_registroConCuentaExistente(self):
+        self.driver.get(self.live_server_url+"/authentication/register")
         time.sleep(5)
+        #Busca los campos que rellenar
+        self.driver.find_element(By.ID, 'id_username').send_keys("pruebaCorreo")
+        self.driver.find_element(By.ID, 'id_email').send_keys("pruebaCorreo@correo.us")
+        self.driver.find_element(By.ID, 'id_password1').send_keys("estoesunaprueba1")
+        self.driver.find_element(By.ID, 'id_password2').send_keys("estoesunaprueba1")
+        #Boton de registrar
+        self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
+        #Redirigir a la pagina inicial
+        self.driver.get(f'{self.live_server_url}/')
+        #Redirigir a la pagina de registro
+        self.driver.get(self.live_server_url+"/authentication/register")
+        #Busca los campos que rellenar
+        self.driver.find_element(By.ID, 'id_username').send_keys("pruebaCorreo1")
+        self.driver.find_element(By.ID, 'id_email').send_keys("pruebaCorreo@correo.us")
+        self.driver.find_element(By.ID, 'id_password1').send_keys("estoesunaprueba2")
+        self.driver.find_element(By.ID, 'id_password2').send_keys("estoesunaprueba2")
+        #Boton de registrar
+        self.driver.find_element(By.XPATH, '/html/body/div/form/button').click()
+        time.sleep(5)
+        sigueEnRegistro = self.driver.find_element(By.ID, 'id_username').is_displayed()
+        self.assertEqual(sigueEnRegistro, True)
