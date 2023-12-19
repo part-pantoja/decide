@@ -12,27 +12,7 @@
 
 <div id="app-booth">
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-primary">
-        <div class="container-fluid">
-            <div class="navbar-brand" >Decide</div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item" v-if="!signup">
-                        <button v-on:click="decideLogout" class="btn btn-secondary">{% trans "Logout" %}</button>
-                    </li>
-                    <li class="nav-item" v-if="signup">
-                        <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#registerModal">
-                            Login
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+
 
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <symbol id="check-circle-fill" viewBox="0 0 16 16">
@@ -72,6 +52,7 @@
             </svg>
             <div class="ms-2">
                 Confirm your identity to access the vote!
+
             </div>
         </div>
         <div class="container-fluid">
@@ -248,10 +229,10 @@
                             </button>
                         </div>
                 </div>
-            </div>        
+            </div>       
                                     
             <div v-else>
-        
+
                 <div v-for="question in voting.questions" :key="question.desc">
                     <h2>[[ question.id ]] - [[ question.desc ]]</h2>
             
@@ -262,13 +243,17 @@
                                 :name="'question_' + question.desc"
                                 :value="opt.number">
                             [[ opt.option ]]
+
                         </div>                    
+
                     </form>
                 </div>
             
                 <button class="btn btn-primary mt-3" v-on:click="decideSendDicc">
+
                     {% trans "Vote" %}
                 </button>       
+
                 </div>
             </div> 
         </div>
@@ -306,7 +291,7 @@
     <script src="{% static "crypto/elgamal.js" %}"></script>
 
     <!-- Vuejs -->
-    <script src="https://unpkg.com/vue@latest">></script>
+    <script src="https://unpkg.com/vue@latest"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
 
@@ -638,14 +623,7 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
-
-                    
-
-
-                    
-
-
-                
+              
                 decideMultipleOptionSend(evt) {
                     evt.preventDefault();
                     if (this.selectedOptions.length === 0) {

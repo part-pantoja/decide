@@ -20,7 +20,7 @@
             </div>
         </nav>
 
-        <div class="voting container">
+        <div class="voting container" >
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
         
             <h2 v-if="!voting.start_date">Votación no comenzada</h2>
@@ -108,11 +108,8 @@
                                 </tr>
                             </tbody>
                     </table>
-                </form>
-
-              
-              
-              
+                </form>        
+                       
                 <form v-if="voting.questions[0].type === 'open_response'">
                     <table class="table table-bordered table-striped">
                         <thead>
@@ -220,13 +217,9 @@
                 
                 
                 
-            </div>
-                
-                
+              </div>     
 
-            <div v-else>
-
-                
+            <div v-else>               
                 
                 <div v-for="question in voting.questions" :key="question.desc">
                     <h3>{{ question.desc }}</h3>
@@ -270,6 +263,7 @@
                     Traducir a alemán
                 </button>
             </a>
+
         </div>
     </div>
 </div>
@@ -372,4 +366,4 @@
         });
     </script>
 </body>
-{% endblock %}
+{% endblock %}

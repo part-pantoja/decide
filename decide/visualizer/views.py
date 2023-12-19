@@ -51,7 +51,6 @@ class VisualizerViewEN(TemplateView):
 
         return context
 
-
 def votings(request):
     votings = list(Voting.objects.values())
     return render(request, 'visualizer/index.html', {
