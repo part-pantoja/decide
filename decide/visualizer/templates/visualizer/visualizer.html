@@ -3,11 +3,15 @@
 
 {% block extrahead %}
     <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css" />
     <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+
     <div id="app-visualizer">
         <!-- Navbar -->
         <nav class="navbar navbar-dark bg-dark">
@@ -104,11 +108,8 @@
                                 </tr>
                             </tbody>
                     </table>
-                </form>
-
-              
-              
-              
+                </form>        
+                       
                 <form v-if="voting.questions[0].type === 'open_response'">
                     <table class="table table-bordered table-striped">
                         <thead>
@@ -216,13 +217,9 @@
                 
                 
                 
-            </div>
-                
-                
+              </div>     
 
-            <div v-else>
-
-                
+            <div v-else>               
                 
                 <div v-for="question in voting.questions" :key="question.desc">
                     <h3>{{ question.desc }}</h3>
@@ -250,15 +247,33 @@
                     </table>
                 </div>
             </div>
-                
+
+        </div>
+        <div>
+            <a href="en">
+                <button id="en" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Traducir a inglés
+                </button>
+            </a>
+        </div>
+
+        <div>
+            <a href="de">
+                <button id="de" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Traducir a alemán
+                </button>
+            </a>
+
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extrabody %}
     <!-- Vuejs -->
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
     <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

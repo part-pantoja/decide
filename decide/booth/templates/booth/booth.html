@@ -51,7 +51,8 @@
                 <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
             </svg>
             <div class="ms-2">
-                ¡Confirme su identidad para acceder a la votación!
+                Confirm your identity to access the vote!
+
             </div>
         </div>
         <div class="container-fluid">
@@ -228,14 +229,10 @@
                             </button>
                         </div>
                 </div>
-            </div>        
-                
-                                
-                                
-                                
+            </div>       
+                                    
             <div v-else>
 
-            
                 <div v-for="question in voting.questions" :key="question.desc">
                     <h2>[[ question.id ]] - [[ question.desc ]]</h2>
             
@@ -246,22 +243,37 @@
                                 :name="'question_' + question.desc"
                                 :value="opt.number">
                             [[ opt.option ]]
-                        </div>
-                    
+
+                        </div>                    
+
                     </form>
                 </div>
             
                 <button class="btn btn-primary mt-3" v-on:click="decideSendDicc">
 
                     {% trans "Vote" %}
-                    </button>       
+                </button>       
 
                 </div>
             </div> 
         </div>
 
+        <div>
+            <a href="es">
+                <b-button type="button" style="margin-top: 10px" variant="primary">
+                    Translate to Spanish
+                </b-button>
+            </a>
+        </div>
+    
+        <div>
+            <a href="de">
+                <b-button type="button" style="margin-top: 10px" variant="primary">
+                    Translate to German
+                </b-button>
+            </a>
+        </div>
     </div>
-
 </div>
     
 {% endblock %}
@@ -611,14 +623,7 @@
                             this.showAlert("danger", '{% trans "Error: " %}' + error);
                         });
                 },
-
-                    
-
-
-                    
-
-
-                
+              
                 decideMultipleOptionSend(evt) {
                     evt.preventDefault();
                     if (this.selectedOptions.length === 0) {
@@ -783,7 +788,7 @@
                     this.alertShow = true;
                 }
             },
-        }).mount('#app-booth')
+        }).mount('#app-booth') 
     </script>
 </body>
 {% endblock %}

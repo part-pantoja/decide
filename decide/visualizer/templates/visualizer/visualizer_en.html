@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css" />
+    <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div id="app-visualizer">
+        <!-- Navbar -->
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <h1 class="navbar-brand">Decide</h1>
+            </div>
+        </nav>
+
+        <div class="voting container">
+            <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
+
+            <h2 v-if="!voting.start_date">Voting not started</h2>
+            <h2 v-else-if="!voting.end_date">Voting in progress</h2>
+            <div v-else>
+                <h2 class="heading">Results:</h2>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Score</th>
+                            <th>Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="opt in voting.postproc" :key="opt.number">
+                            <th>[[opt.option]]</th>
+                            <td>[[opt.postproc]]</td>
+                            <td class="text-muted">[[opt.votes]]</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <div>
+            <a href="es">
+                <button id="es" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Translate to Spanish
+                </button>
+            </a>
+        </div>
+
+        <div>
+            <a href="de">
+                <button id="de" class="btn btn-primary" style="margin-top: 1%; margin-left:2%; margin-bottom:1%;">
+                    Translate to German
+                </button>
+            </a>
+        </div>
+    
+    </div>
+{% endblock %}
+
+{% block extrabody %}
+    <!-- Vuejs -->
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+    <script src="https://unpkg.com/bootstrap@5.2.2/dist/js/bootstrap.js"></script>
+
+
+    <script>
+        var voting = {{voting|safe}};
+        const { createApp } = Vue
+        createApp({
+            delimiters: ['[[', ']]'],
+            data() {
+                return {
+                    voting: voting
+                }
+            }
+        }).mount('#app-visualizer')
+    </script>
+</body>
+{% endblock %}
