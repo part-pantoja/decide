@@ -57,6 +57,9 @@ class CreateRequestTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Lo sentimos, tu solicitud ha sido rechazada.')
 
+    def doble_veri(self):
+        self.assertTrue()
+
 class ManageRequestTestCase(TestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(username='adminuser', password='adminpassword', email='decidepartpantoja@gmail.com', is_staff=True)
