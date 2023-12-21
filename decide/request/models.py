@@ -7,6 +7,8 @@ class RequestStatus(Enum):
     DECLINED = 'DECLINED'
     PENDING = 'PENDING'
 
+
+#DOBLE VERIFICACION
 class Request(models.Model):
     voting_id = models.PositiveIntegerField()
     voter_id = models.PositiveIntegerField()
