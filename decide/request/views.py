@@ -16,6 +16,7 @@ def send_email(destinatario, status):
         return
     sender = EMAIL_HOST_USER
     if status == RequestStatus.ACCEPTED.value:
+        #cambiaria aqui el idioma
         subject = 'Solicitud de censo aceptada'
         message = 'Su solicitud de participación en el censo ha sido aceptada'
     else:
